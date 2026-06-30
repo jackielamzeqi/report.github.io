@@ -1,0 +1,1801 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>取餐码在线配置台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --panel-soft: #f0f4f8;
+      --line: #dfe7ef;
+      --line-strong: #cbd6e2;
+      --text: #16202a;
+      --muted: #697789;
+      --blue: #0f77ff;
+      --green: #19a765;
+      --red: #d94d45;
+      --orange: #f28a28;
+      --yellow: #ca8a04;
+      --purple: #8250df;
+      --shadow: 0 10px 30px rgba(32, 50, 71, .08);
+      --radius: 8px;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1180px;
+      color: var(--text);
+      background: var(--bg);
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 224px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #111923;
+      color: #dce8f5;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand-mark {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 0 6px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    .mark-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #fff;
+      color: #111923;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+
+    .brand-mark h1 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .brand-mark p {
+      margin: 3px 0 0;
+      color: #94a8bd;
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav button {
+      height: 42px;
+      border-radius: 8px;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      color: #b8c6d5;
+      background: transparent;
+      text-align: left;
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .nav-icon svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav button.active {
+      color: #fff;
+      background: rgba(255, 255, 255, .1);
+    }
+
+    .nav .nav-count {
+      min-width: 30px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .1);
+      font-size: 12px;
+    }
+
+    .release-panel {
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, .12);
+      padding: 16px 8px 0;
+      color: #aec0d0;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .release-panel strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 76px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 0 24px;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .role-select,
+    .search-input,
+    .control,
+    select,
+    input,
+    textarea {
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input,
+    select {
+      height: 34px;
+      padding: 0 10px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 34px;
+      resize: vertical;
+      padding: 8px 10px;
+      line-height: 1.45;
+    }
+
+    .role-select {
+      height: 36px;
+      padding: 0 34px 0 10px;
+      min-width: 146px;
+    }
+
+    .role-debug {
+      max-width: 280px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .btn {
+      height: 36px;
+      border-radius: 8px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      color: var(--text);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .btn.danger {
+      color: #fff;
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .btn:disabled,
+    select:disabled,
+    input:disabled {
+      cursor: not-allowed;
+      color: #9aa8b6;
+      background: #edf1f5;
+    }
+
+    .content {
+      padding: 18px 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 74px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 13px 14px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .panel-head p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .search-input {
+      width: 280px;
+      height: 36px;
+      padding: 0 12px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 270px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      height: 42px;
+      background: #f4f7fa;
+      color: #556273;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      padding: 0 10px;
+      font-weight: 700;
+    }
+
+    tbody td {
+      min-height: 54px;
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+    }
+
+    .brand-cell,
+    .food-cell {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 9px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      box-shadow: inset 0 -10px 22px rgba(0, 0, 0, .12);
+    }
+
+    .brand-icon.neutral {
+      color: #26313f;
+    }
+
+    .food-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-text strong,
+    .food-text strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-text span,
+    .food-text span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .alias-col {
+      padding-right: 10px;
+    }
+
+    .chip {
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eef4fb;
+      color: #334155;
+      border: 1px solid #dce7f2;
+      font-size: 12px;
+      max-width: 170px;
+    }
+
+    .chip span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chip button {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      color: #697789;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .mini-form {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) 76px;
+      gap: 6px;
+    }
+
+    .mini-form input {
+      min-width: 0;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status.draft {
+      color: #697789;
+      background: #eef2f6;
+      border-color: #dde5ee;
+    }
+
+    .status.product {
+      color: #8250df;
+      background: #f3ecff;
+      border-color: #e1d0ff;
+    }
+
+    .status.qa {
+      color: #ca8a04;
+      background: #fff6d9;
+      border-color: #f5df8f;
+    }
+
+    .status.release {
+      color: #0f77ff;
+      background: #eaf3ff;
+      border-color: #cfe4ff;
+    }
+
+    .status.online {
+      color: #158456;
+      background: #e9f8ef;
+      border-color: #c8ecd8;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+      font-weight: 800;
+    }
+
+    .icon-btn.word {
+      width: 48px;
+      font-size: 12px;
+    }
+
+    .icon-btn.ok {
+      color: #fff;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .icon-btn.blue {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .icon-btn.warn {
+      color: #fff;
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+
+    .icon-btn.danger {
+      color: #fff;
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .icon-btn:disabled {
+      color: #a4b0bf;
+      background: #edf1f5;
+      border-color: #dbe3eb;
+    }
+
+    .time-stack {
+      display: grid;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .food-icon {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #eef3f7;
+      border: 1px solid #dce5ee;
+      overflow: hidden;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .food-icon::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      top: 8px;
+      height: 5px;
+      border-radius: 6px 6px 2px 2px;
+      background: #253243;
+    }
+
+    .food-icon::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 14px;
+      width: 12px;
+      height: 15px;
+      border-radius: 2px 2px 7px 7px;
+      background: var(--drink, #232a34);
+      border: 2px solid rgba(255, 255, 255, .75);
+    }
+
+    .food-icon.fastfood::before {
+      left: 8px;
+      right: 8px;
+      top: 11px;
+      height: 15px;
+      border-radius: 2px 2px 8px 8px;
+      background: #d94d45;
+    }
+
+    .food-icon.fastfood::after {
+      left: 11px;
+      top: 8px;
+      width: 12px;
+      height: 6px;
+      border: 0;
+      border-radius: 8px 8px 2px 2px;
+      background: #f4b942;
+    }
+
+    .food-icon.combo::before {
+      left: 7px;
+      right: 14px;
+      top: 11px;
+      height: 14px;
+      border-radius: 2px 2px 8px 8px;
+      background: #d94d45;
+    }
+
+    .food-icon.combo::after {
+      left: 19px;
+      top: 8px;
+      width: 8px;
+      height: 19px;
+      border-radius: 2px 2px 6px 6px;
+      background: var(--drink, #ead8b3);
+      border: 2px solid rgba(255, 255, 255, .75);
+    }
+
+    .shot-picker {
+      display: grid;
+      grid-template-columns: 58px 78px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .shot-preview,
+    .shot-cell {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: #edf3f8;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .shot-preview img,
+    .shot-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .file-btn {
+      width: 82px;
+      height: 34px;
+      border-radius: 8px;
+      padding: 0 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      color: var(--text);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .empty {
+      padding: 44px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 210px 260px minmax(220px, 1fr) 140px 120px 150px auto;
+      gap: 8px;
+      align-items: end;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+    }
+
+    .status-th {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-filter-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .filter-icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      color: #64748b;
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      vertical-align: middle;
+    }
+
+    .filter-icon-btn.active {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .filter-icon-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .status-filter-menu {
+      position: absolute;
+      top: 30px;
+      right: 0;
+      z-index: 8;
+      width: 112px;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .status-filter-menu button {
+      width: 100%;
+      height: 30px;
+      border-radius: 6px;
+      padding: 0 8px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .status-filter-menu button.active {
+      color: #fff;
+      background: var(--blue);
+    }
+
+    .merchant-filter-menu {
+      width: 180px;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 10;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #fff;
+      background: #16202a;
+      box-shadow: 0 15px 36px rgba(0, 0, 0, .18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: .18s ease;
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .image-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: rgba(17, 25, 35, .62);
+    }
+
+    .image-modal.hidden {
+      display: none;
+    }
+
+    .image-modal figure {
+      max-width: min(900px, 92vw);
+      max-height: 88vh;
+      margin: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .3);
+    }
+
+    .image-modal img {
+      display: block;
+      max-width: 100%;
+      max-height: 82vh;
+      object-fit: contain;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        min-width: 0;
+      }
+
+      .shell {
+        display: block;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+
+      .nav {
+        flex-direction: row;
+        overflow: auto;
+      }
+
+      .release-panel {
+        display: none;
+      }
+
+      .topbar,
+      .panel-head,
+      .form-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-mark">
+        <div class="mark-icon">取</div>
+        <div>
+          <h1>取餐码配置后台</h1>
+          <p>仅对取餐码生效</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="配置模块">
+        <button class="active" data-tab="brands" title="品牌名称">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v6H4z"></path><path d="M4 14h7v6H4z"></path><path d="M13 14h7v6h-7z"></path></svg></span><span>品牌名称</span><span class="nav-count" id="brandCount">98</span>
+        </button>
+        <button data-tab="drinks" title="饮料颜色">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"></path><path d="M9 15a3 3 0 0 0 3 3"></path></svg></span><span>饮料颜色</span><span class="nav-count" id="drinkCount">0</span>
+        </button>
+        <button data-tab="release" title="配置流程">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12"></path><path d="M6 20h12"></path><path d="M8 4v5l4 3 4-3V4"></path><path d="M8 20v-5l4-3 4 3v5"></path></svg></span><span>配置流程</span><span class="nav-count" id="releaseCount">0</span>
+        </button>
+      </nav>
+      <div class="release-panel">
+        <strong>发布节奏</strong>
+        <div>取餐码上线：2026-07-10</div>
+        <div>配置平台：2026-07 中旬</div>
+        <div>推送频率：7 天一次</div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="title">
+          <h2 id="pageTitle">品牌名称</h2>
+          <p id="pageDesc">开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。</p>
+        </div>
+        <div class="toolbar">
+          <select id="roleSelect" class="role-select" title="当前角色">
+            <option value="dev">开发（算法）</option>
+            <option value="product">产品</option>
+            <option value="qa">品质</option>
+            <option value="super_admin">超级管理员</option>
+          </select>
+          <button class="btn primary" id="ssoLoginBtn" title="SSO登录">SSO登录</button>
+          <div class="role-debug">调试阶段可手动选择；正式上线后通过 SSO 自动关联账号和身份。</div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="metric-strip">
+          <div class="metric"><span>品牌总数</span><strong id="metricBrands">98</strong></div>
+          <div class="metric"><span>相似名称</span><strong id="metricAliases">0</strong></div>
+          <div class="metric"><span>饮料颜色</span><strong id="metricDrinks">0</strong></div>
+          <div class="metric"><span>待同意</span><strong id="metricProduct">0</strong></div>
+          <div class="metric"><span>待验收</span><strong id="metricQa">0</strong></div>
+          <div class="metric"><span>待上线</span><strong id="metricReady">0</strong></div>
+        </div>
+
+        <section class="panel" id="brandsPanel">
+          <div class="panel-head">
+            <div>
+              <h3>品牌映射表</h3>
+              <p>brand 固定，按品牌中文名称一一对应；相似名称走三段审批。</p>
+            </div>
+            <div class="panel-actions">
+              <input id="brandSearch" class="search-input" type="search" placeholder="搜索品牌或相似名称">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 200px;">品牌</th>
+                  <th style="width: 170px;">brand</th>
+                  <th class="alias-col" style="width: 200px;">相似名称</th>
+                  <th style="width: 168px;"></th>
+                  <th style="width: 24px;"></th>
+                  <th style="width: 132px;">
+                    <span class="status-th">状态
+                      <span class="status-filter-wrap">
+                        <button class="filter-icon-btn" id="brandStatusFilter" title="状态筛选"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg></button>
+                        <span class="status-filter-menu hidden" id="brandStatusMenu">
+                          <button data-status-filter="all">全部</button>
+                          <button data-status-filter="online">已上线</button>
+                          <button data-status-filter="product">待同意</button>
+                          <button data-status-filter="qa">待验收</button>
+                          <button data-status-filter="release">待上线</button>
+                        </span>
+                      </span>
+                    </span>
+                  </th>
+                  <th style="width: 182px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="brandRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel hidden" id="drinksPanel">
+          <div class="panel-head">
+            <div>
+              <h3>饮料颜色</h3>
+              <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；仅餐饮类型为茶饮且温度为冷时可选择饮料颜色。</p>
+            </div>
+            <div class="panel-actions">
+              <input id="drinkSearch" class="search-input" type="search" placeholder="搜索商家 / 餐名 / 状态">
+            </div>
+          </div>
+          <form class="form-grid" id="drinkForm">
+            <div class="field">
+              <label for="screenshotInput">餐品截屏</label>
+              <div class="shot-picker">
+                <div class="shot-preview" id="screenshotPreview">未选</div>
+                <label class="file-btn" for="screenshotInput">选择截屏</label>
+              </div>
+              <input id="screenshotInput" class="hidden" type="file" accept="image/*">
+            </div>
+            <div class="field">
+              <label for="merchantInput">商家</label>
+              <input id="merchantInput" list="merchantList" placeholder="输入或选择品牌名称" required>
+              <datalist id="merchantList"></datalist>
+            </div>
+            <div class="field">
+              <label for="foodNameInput">餐名</label>
+              <input id="foodNameInput" placeholder="例：冰青提柠檬茶" required>
+            </div>
+            <div class="field">
+              <label for="foodTypeSelect">餐饮类型</label>
+              <select id="foodTypeSelect">
+                <option value="combo_default">组合</option>
+                <option value="tea">茶饮</option>
+                <option value="coffee">咖啡</option>
+                <option value="dessert">甜品</option>
+                <option value="fastfood">快餐</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="temperatureSelect">温度</label>
+              <select id="temperatureSelect">
+                <option value="hot">热</option>
+                <option value="cold">冷</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="colorSelect">饮料颜色</label>
+              <select id="colorSelect" disabled></select>
+            </div>
+            <button class="btn primary" type="submit">新增</button>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 152px;">餐品</th>
+                  <th style="width: 158px;">
+                    <span class="status-th">商家
+                      <span class="status-filter-wrap">
+                        <button class="filter-icon-btn" id="drinkMerchantFilter" title="商家筛选"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg></button>
+                        <span class="status-filter-menu merchant-filter-menu hidden" id="drinkMerchantMenu"></span>
+                      </span>
+                    </span>
+                  </th>
+                  <th style="width: 92px;">餐饮类型</th>
+                  <th style="width: 70px;">温度</th>
+                  <th style="width: 112px;">饮料颜色</th>
+                  <th style="width: 130px;">
+                    <span class="status-th">状态
+                      <span class="status-filter-wrap">
+                        <button class="filter-icon-btn" id="drinkStatusFilter" title="状态筛选"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg></button>
+                        <span class="status-filter-menu hidden" id="drinkStatusMenu">
+                          <button data-status-filter="all">全部</button>
+                          <button data-status-filter="online">已上线</button>
+                          <button data-status-filter="product">待同意</button>
+                          <button data-status-filter="qa">待验收</button>
+                          <button data-status-filter="release">待上线</button>
+                        </span>
+                      </span>
+                    </span>
+                  </th>
+                  <th style="width: 232px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="drinkRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel hidden" id="releasePanel">
+          <div class="panel-head">
+            <div>
+              <h3>配置流程</h3>
+              <p>展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn primary" id="publishReadyBtn">批量上线</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 120px;">类型</th>
+                  <th>配置内容</th>
+                  <th style="width: 126px;">状态</th>
+                  <th style="width: 220px;">时间跟踪</th>
+                  <th style="width: 190px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="releaseRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="image-modal hidden" id="imageModal">
+    <figure>
+      <img id="imageModalImg" alt="餐品截屏大图">
+    </figure>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "pickup-code-config-console-v1";
+    const brandValues = "luckin_coffee,starbucks,kfc,mcdonalds,mxbc,heytea,cotti_coffee,lucky_cup,pacific_coffee,peets_coffee,chagee,manner_coffee,m_stand,chapanda,nayuki,auntea_jenny,good_me,uncle_q,yihetang,nowwa,1diandian,tasiting,cnhls,ah_ma_handmade,coco,shuyisxc,quchashan,no_yeye_no_tea,tea_monster,juancha,molantea,joes_tea,gong_cha,moning,hero_tea,tims,charliestea,beautea_care,cha_yue_shan,bao_zhu_gong,bao_zhe,molly_tea,yotea,swilloo,kosk,ayogurtcow,ningjitea,chafalls,ye_cui_shan,chaocmg,sen_lin_zi,jpg,arabica,grid_coffee,kuddo,blue_bottle_coffee,costa_coffee,something_for,kcoffee,paix,shan_chi,blend,yu_lian_cha_lou,hun_juice,ru_xu,pizza_hut,more_yogurt,yogurt_cans,blueglass,bluebear,cyystea,dairy_queen,tian_la_la,cha_hua_nong,a_shui_tea,befinecha,linlee,algebraist,beanstar_coffee,seesaw_coffee,lavazza,dicos,burger_king,shake_shack,meet_fresh,honeymoon_dessert,asis,yu_tian_tian,li_ruo_tao,subway,lemon_right,qian_yu_ben_pu,dakotea,chun_feng,danmacha,tamkoko,chen_mandi,yoshinoya".split(",");
+    const brandNames = "瑞幸咖啡,星巴克,肯德基,麦当劳,蜜雪冰城,喜茶,库迪咖啡,幸运咖,太平洋咖啡,Peets皮爷咖啡,霸王茶姬,MannerCoffee,M Stand咖啡,茶百道,奈雪的茶,沪上阿姨,古茗,丘大叔柠檬茶,益禾堂,NOWWA挪瓦咖啡,1点点,塔斯汀,华莱士,阿嬷手作,Coco都可,书亦烧仙草,去茶山,爷爷不泡茶,茶力的小怪兽,眷茶臻选,东方墨蘭,茶救星球,贡茶,摩柠手作,英歌魂,Tims天好咖啡,茶理宜世,姜大力,茶月山,煲珠公,爆蔗,茉莉奶白,有茶,斯味洛,KOSK可斯克,一只酸奶牛,柠季,茶瀑布,野萃山,茶亦青,森林子,JPG,ARABICA,Grid Coffee,Kuddo,蓝瓶咖啡,COSTA,SomethingFor咖啡,肯悦咖啡,PAIX,山池咖啡SAANCI,blend,裕莲茶楼,混果汁,入续,必胜客,茉酸奶,酸奶罐罐,Blueglass,兰熊鲜奶,茶颜悦色,Dairy Queen,甜啦啦,茶话弄,阿水大杯茶,百分茶,林里,代数学家,比星咖啡,Seesaw,LAVAZZA,德克士,汉堡王,ShakeShack,鲜芋仙,满记甜品,宝藏绿洲,芋田田,李若桃,赛百味,柠檬向右,千芋本铺,麒麟大口茶,椿风手作,淡马茶坊,Tamkoko,陈文鼎,吉野家".split(",");
+    const drinkColors = [
+      { value: "black", label: "black 黑色", hex: "#1f2933" },
+      { value: "orange", label: "orange 橙色", hex: "#f47b20" },
+      { value: "pink", label: "pink 粉色", hex: "#f6a5c0" },
+      { value: "red", label: "red 红色", hex: "#d94d45" },
+      { value: "purple", label: "purple 紫色", hex: "#7d55c7" },
+      { value: "green", label: "green 绿色", hex: "#28a86b" },
+      { value: "brown", label: "brown 棕色", hex: "#8a5a35" },
+      { value: "yellow", label: "yellow 黄色", hex: "#e2ac26" },
+      { value: "milky_white", label: "milky_white 奶白", hex: "#ead8b3" },
+      { value: "default", label: "default 默认", hex: "#d8c49d" }
+    ];
+    const typeLabels = { tea: "茶饮", coffee: "咖啡", dessert: "甜品", fastfood: "快餐", combo_default: "组合" };
+    const tempLabels = { cold: "冷", hot: "热" };
+    const stateLabels = {
+      draft: "待发起",
+      product: "待同意",
+      qa: "待验收",
+      release: "待上线",
+      online: "已上线"
+    };
+    const stateClass = { draft: "draft", product: "product", qa: "qa", release: "release", online: "online" };
+    const brandColorGroups = {
+      blue: ["luckin_coffee", "blue_bottle_coffee", "something_for", "beanstar_coffee", "lavazza", "chapanda", "joes_tea", "bao_zhu_gong", "swilloo", "blueglass", "bluebear", "lemon_right", "qian_yu_ben_pu"],
+      red: ["cotti_coffee", "mxbc", "lucky_cup", "chagee", "pacific_coffee", "tims", "costa_coffee", "kcoffee", "paix", "tea_monster", "gong_cha", "hero_tea", "cyystea", "li_ruo_tao", "chen_mandi", "dairy_queen"],
+      orange: ["nowwa", "coco", "juancha", "moning", "beautea_care", "kosk", "cha_hua_nong", "molantea"],
+      yellow: ["blend", "quchashan", "yotea", "tian_la_la", "dakotea", "honeymoon_dessert"],
+      green: ["starbucks", "grid_coffee", "kuddo", "shan_chi", "nayuki", "good_me", "uncle_q", "yihetang", "1diandian", "cha_yue_shan", "bao_zhe", "ayogurtcow", "ningjitea", "chafalls", "ye_cui_shan", "chaocmg", "sen_lin_zi", "hun_juice", "more_yogurt", "befinecha", "linlee", "asis", "chun_feng", "danmacha"],
+      purple: ["a_shui_tea"]
+    };
+    const colorMap = { blue: "#0f77ff", red: "#ed4d47", orange: "#ff852e", yellow: "#ffa629", green: "#32bf55", purple: "#af52de", neutral: "#fff7d4" };
+
+    let state = loadState();
+    let activeTab = "brands";
+    let selectedScreenshot = "";
+    let brandStatusFilterValue = "all";
+    let drinkStatusFilterValue = "all";
+    let drinkMerchantFilterValue = "all";
+
+    const el = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    const nowText = () => {
+      const date = new Date();
+      const pad = (num) => String(num).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+    const makeId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+    function createDefaultState() {
+      const brands = brandValues.map((brand, index) => ({
+        id: brand,
+        brand,
+        name: brandNames[index],
+        aliases: [],
+        aliasDraft: "",
+        status: "draft",
+        devTime: "",
+        productTime: "",
+        qaTime: "",
+        onlineTime: ""
+      }));
+      return {
+        scope: "pickup_code",
+        cadenceDays: 7,
+        kickoffDate: "2026-07-10",
+        expectedPlatformDate: "2026-07中旬",
+        brands,
+        drinks: []
+      };
+    }
+
+    function loadState() {
+      const defaults = createDefaultState();
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved || !Array.isArray(saved.brands) || !Array.isArray(saved.drinks)) return defaults;
+        const savedByBrand = new Map(saved.brands.map((item) => [item.brand, item]));
+        return {
+          ...defaults,
+          ...saved,
+          brands: defaults.brands.map((item) => ({ ...item, ...(savedByBrand.get(item.brand) || {}) })),
+          drinks: saved.drinks
+        };
+      } catch (error) {
+        return defaults;
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getRole() {
+      return el("roleSelect").value;
+    }
+
+    function getBrandTheme(brand) {
+      const group = Object.keys(brandColorGroups).find((key) => brandColorGroups[key].includes(brand));
+      return group || "neutral";
+    }
+
+    function getBrandIconHtml(item) {
+      const theme = getBrandTheme(item.brand);
+      const label = /^[A-Za-z]/.test(item.name) ? item.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() : item.name.slice(0, 1);
+      return `<div class="brand-icon ${theme === "neutral" ? "neutral" : ""}" style="background:${colorMap[theme]}">${escapeHtml(label)}</div>`;
+    }
+
+    function getColorInfo(color) {
+      return drinkColors.find((item) => item.value === color) || drinkColors[9];
+    }
+
+    function isDrinkColorEditable(foodType, temperature) {
+      return foodType === "tea" && temperature === "cold";
+    }
+
+    function getFoodIconClass(type) {
+      if (type === "fastfood") return "fastfood";
+      if (type === "combo_default") return "combo";
+      return "";
+    }
+
+    function getStatusHtml(status) {
+      const className = stateClass[status] || "draft";
+      return `<span class="status ${className}"><span class="dot"></span>${stateLabels[status] || status}</span>`;
+    }
+
+    function getTimesHtml(item) {
+      return `<div class="time-stack">
+        <span>发起：${escapeHtml(item.devTime || "-")}</span>
+        <span>产品：${escapeHtml(item.productTime || "-")}</span>
+        <span>品质：${escapeHtml(item.qaTime || "-")}</span>
+        <span>上线：${escapeHtml(item.onlineTime || "-")}</span>
+      </div>`;
+    }
+
+    function canAct(item, target) {
+      const role = getRole();
+      if (target === "start") return ["dev", "product"].includes(role) && item.status === "draft";
+      if (target === "product") return role === "product" && item.status === "product";
+      if (target === "qa") return role === "qa" && item.status === "qa";
+      if (target === "online") return role === "super_admin" && item.status === "release";
+      return false;
+    }
+
+    function getChangedItems() {
+      const changedBrands = state.brands.filter((item) => item.aliases.length || item.status !== "draft");
+      return [...changedBrands, ...state.drinks];
+    }
+
+    function canBatchPublish() {
+      const role = getRole();
+      const changed = getChangedItems();
+      return role === "super_admin" && changed.some((item) => item.status === "release") && changed.every((item) => ["release", "online"].includes(item.status));
+    }
+
+    function toast(message) {
+      const node = el("toast");
+      node.textContent = message;
+      node.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => node.classList.remove("show"), 2200);
+    }
+
+    function initOptions() {
+      el("merchantList").innerHTML = [...brandNames, "其他"].map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+      el("colorSelect").innerHTML = drinkColors.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+    }
+
+    function updateMetrics() {
+      const aliasCount = state.brands.reduce((sum, item) => sum + item.aliases.length, 0);
+      const productPending = [...state.brands, ...state.drinks].filter((item) => item.status === "product").length;
+      const qaPending = [...state.brands, ...state.drinks].filter((item) => item.status === "qa").length;
+      const ready = [...state.brands, ...state.drinks].filter((item) => item.status === "release").length;
+      const online = [...state.brands, ...state.drinks].filter((item) => item.status === "online").length;
+      el("brandCount").textContent = state.brands.length;
+      el("drinkCount").textContent = state.drinks.length;
+      el("releaseCount").textContent = getChangedItems().length;
+      el("metricBrands").textContent = state.brands.length;
+      el("metricAliases").textContent = aliasCount;
+      el("metricDrinks").textContent = state.drinks.length;
+      el("metricProduct").textContent = productPending;
+      el("metricQa").textContent = qaPending;
+      el("metricReady").textContent = ready;
+      el("publishReadyBtn").disabled = !canBatchPublish();
+    }
+
+    function getScreenshotHtml(value) {
+      return value
+        ? `<div class="shot-cell"><img src="${escapeHtml(value)}" alt="餐品截屏"></div>`
+        : `<div class="shot-cell">未选</div>`;
+    }
+
+    function getFoodVisualHtml(item, iconColor) {
+      if (item.screenshot) {
+        return `<button class="food-icon" data-action="previewFoodImage" data-id="${item.id}" title="查看大图"><img src="${escapeHtml(item.screenshot)}" alt="餐品主图"></button>`;
+      }
+      return `<div class="food-icon ${getFoodIconClass(item.foodType)}" style="--drink:${iconColor}"></div>`;
+    }
+
+    function getStatusCounts(items) {
+      return items.reduce((counts, item) => {
+        counts.all += 1;
+        counts[item.status] = (counts[item.status] || 0) + 1;
+        return counts;
+      }, { all: 0, online: 0, product: 0, qa: 0, release: 0 });
+    }
+
+    function updateBrandStatusFilterUi() {
+      const labels = { all: "全部", online: "已上线", product: "待同意", qa: "待验收", release: "待上线" };
+      const counts = getStatusCounts(state.brands);
+      el("brandStatusFilter").classList.toggle("active", brandStatusFilterValue !== "all");
+      el("brandStatusFilter").title = `状态筛选：${labels[brandStatusFilterValue]}`;
+      document.querySelectorAll("#brandStatusMenu [data-status-filter]").forEach((button) => {
+        const value = button.dataset.statusFilter;
+        button.textContent = `${labels[value]} (${counts[value] || 0})`;
+        button.classList.toggle("active", button.dataset.statusFilter === brandStatusFilterValue);
+      });
+    }
+
+    function updateDrinkStatusFilterUi() {
+      const labels = { all: "全部", online: "已上线", product: "待同意", qa: "待验收", release: "待上线" };
+      const counts = getStatusCounts(state.drinks);
+      el("drinkStatusFilter").classList.toggle("active", drinkStatusFilterValue !== "all");
+      el("drinkStatusFilter").title = `状态筛选：${labels[drinkStatusFilterValue]}`;
+      document.querySelectorAll("#drinkStatusMenu [data-status-filter]").forEach((button) => {
+        const value = button.dataset.statusFilter;
+        button.textContent = `${labels[value]} (${counts[value] || 0})`;
+        button.classList.toggle("active", button.dataset.statusFilter === drinkStatusFilterValue);
+      });
+    }
+
+    function updateDrinkMerchantFilterUi() {
+      const merchants = Array.from(new Set(state.drinks.map((item) => item.merchant).filter(Boolean))).sort((a, b) => a.localeCompare(b, "zh-CN"));
+      if (drinkMerchantFilterValue !== "all" && !merchants.includes(drinkMerchantFilterValue)) {
+        drinkMerchantFilterValue = "all";
+      }
+      const options = ["all", ...merchants];
+      el("drinkMerchantMenu").innerHTML = options.map((merchant) => {
+        const label = merchant === "all" ? "全部" : merchant;
+        return `<button data-merchant-filter="${escapeHtml(merchant)}" class="${merchant === drinkMerchantFilterValue ? "active" : ""}">${escapeHtml(label)}</button>`;
+      }).join("");
+      const currentLabel = drinkMerchantFilterValue === "all" ? "全部" : drinkMerchantFilterValue;
+      el("drinkMerchantFilter").classList.toggle("active", drinkMerchantFilterValue !== "all");
+      el("drinkMerchantFilter").title = `商家筛选：${currentLabel}`;
+    }
+
+    function renderBrands() {
+      const keyword = el("brandSearch").value.trim().toLowerCase();
+      const statusFilter = brandStatusFilterValue;
+      const rows = state.brands.filter((item) => {
+        const source = `${item.brand} ${item.name} ${item.aliases.join(" ")} ${item.status}`.toLowerCase();
+        const keywordMatched = !keyword || source.includes(keyword);
+        const statusMatched = statusFilter === "all" || item.status === statusFilter;
+        return keywordMatched && statusMatched;
+      }).map((item) => {
+        const aliases = item.aliases.length
+          ? item.aliases.map((name, index) => {
+            const removeButton = getRole() === "super_admin" ? `<button title="删除相似名称" data-action="removeAlias" data-brand="${item.brand}" data-index="${index}">x</button>` : "";
+            return `<span class="chip"><span>${escapeHtml(name)}</span>${removeButton}</span>`;
+          }).join("")
+          : `<span class="chip"><span>暂无相似名称</span></span>`;
+        return `<tr>
+          <td>
+            <div class="brand-cell">
+              ${getBrandIconHtml(item)}
+              <div class="brand-text"><strong>${escapeHtml(item.name)}</strong><span>品牌图标</span></div>
+            </div>
+          </td>
+          <td>${escapeHtml(item.brand)}</td>
+          <td class="alias-col"><div class="chip-row">${aliases}</div></td>
+          <td>
+            <div class="mini-form">
+              <input data-field="aliasDraft" data-brand="${item.brand}" value="${escapeHtml(item.aliasDraft || "")}" placeholder="输入相似名称">
+              <button class="btn" data-action="addAlias" data-brand="${item.brand}">新增</button>
+            </div>
+          </td>
+          <td></td>
+          <td>${getStatusHtml(item.status)}</td>
+          <td>
+            <div class="action-row">
+              <button class="icon-btn word ok" title="产品同意" data-action="productApproveBrand" data-brand="${item.brand}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
+              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptBrand" data-brand="${item.brand}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
+              <button class="icon-btn word" title="上线" data-action="publishBrand" data-brand="${item.brand}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join("");
+      el("brandRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">没有匹配的品牌</div></td></tr>`;
+      updateBrandStatusFilterUi();
+    }
+
+    function renderDrinks() {
+      const keyword = el("drinkSearch").value.trim().toLowerCase();
+      const statusFilter = drinkStatusFilterValue;
+      const merchantFilter = drinkMerchantFilterValue;
+      const rows = state.drinks.filter((item) => {
+        const source = `${item.merchant} ${item.foodName} ${typeLabels[item.foodType]} ${tempLabels[item.temperature]} ${item.drinkColor} ${stateLabels[item.status]}`.toLowerCase();
+        const keywordMatched = !keyword || source.includes(keyword);
+        const statusMatched = statusFilter === "all" || item.status === statusFilter;
+        const merchantMatched = merchantFilter === "all" || item.merchant === merchantFilter;
+        return keywordMatched && statusMatched && merchantMatched;
+      }).map((item) => {
+        const color = getColorInfo(item.drinkColor);
+        const iconColor = isDrinkColorEditable(item.foodType, item.temperature) ? color.hex : "#c9d3df";
+        return `<tr>
+          <td>
+            <div class="food-cell">
+              ${getFoodVisualHtml(item, iconColor)}
+              <div class="food-text"><strong>${escapeHtml(item.foodName)}</strong><span>餐品图标</span></div>
+            </div>
+          </td>
+          <td>${escapeHtml(item.merchant)}</td>
+          <td>${escapeHtml(typeLabels[item.foodType])}</td>
+          <td>${escapeHtml(tempLabels[item.temperature])}</td>
+          <td>${isDrinkColorEditable(item.foodType, item.temperature) ? escapeHtml(item.drinkColor) : "置灰"}</td>
+          <td>${getStatusHtml(item.status)}</td>
+          <td>
+            <div class="action-row">
+              <button class="icon-btn word ok" title="产品同意" data-action="productApproveDrink" data-id="${item.id}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
+              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptDrink" data-id="${item.id}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
+              <button class="icon-btn word" title="上线" data-action="publishDrink" data-id="${item.id}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
+              <button class="icon-btn word danger" title="删除" data-action="deleteDrink" data-id="${item.id}" ${getRole() === "super_admin" ? "" : "disabled"}>删除</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join("");
+      el("drinkRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">暂无饮料颜色</div></td></tr>`;
+      updateDrinkMerchantFilterUi();
+      updateDrinkStatusFilterUi();
+    }
+
+    function renderRelease() {
+      const items = [
+        ...state.brands.filter((item) => item.aliases.length || item.status !== "draft").map((item) => ({ kind: "品牌名称", ref: item.brand, item })),
+        ...state.drinks.map((item) => ({ kind: "饮料颜色", ref: item.id, item }))
+      ];
+      const rows = items.map(({ kind, item }) => {
+        const content = kind === "品牌名称"
+          ? `${item.name} / ${item.brand} / 相似名称：${item.aliases.join("、") || "-"}`
+          : `${item.merchant} / ${item.foodName} / ${typeLabels[item.foodType]} / ${tempLabels[item.temperature]} / ${isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor : "置灰"}`;
+        const action = kind === "品牌名称"
+          ? `<div class="action-row">
+              <button class="icon-btn word ok" title="产品同意" data-action="productApproveBrand" data-brand="${item.brand}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
+              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptBrand" data-brand="${item.brand}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
+              <button class="icon-btn word" title="上线" data-action="publishBrand" data-brand="${item.brand}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
+            </div>`
+          : `<div class="action-row">
+              <button class="icon-btn word ok" title="产品同意" data-action="productApproveDrink" data-id="${item.id}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
+              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptDrink" data-id="${item.id}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
+              <button class="icon-btn word" title="上线" data-action="publishDrink" data-id="${item.id}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
+            </div>`;
+        return `<tr>
+          <td>${kind}</td>
+          <td>${escapeHtml(content)}</td>
+          <td>${getStatusHtml(item.status)}</td>
+          <td>${getTimesHtml(item)}</td>
+          <td>${action}</td>
+        </tr>`;
+      }).join("");
+      el("releaseRows").innerHTML = rows || `<tr><td colspan="5"><div class="empty">暂无修改历史记录</div></td></tr>`;
+    }
+
+    function render() {
+      updateMetrics();
+      renderBrands();
+      renderDrinks();
+      renderRelease();
+      saveState();
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
+      el("brandsPanel").classList.toggle("hidden", tab !== "brands");
+      el("drinksPanel").classList.toggle("hidden", tab !== "drinks");
+      el("releasePanel").classList.toggle("hidden", tab !== "release");
+      const copy = {
+        brands: ["品牌名称", "开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。"],
+        drinks: ["饮料颜色", "开发或产品可发起餐品颜色修正，产品同意，品质验收后上线。"],
+        release: ["配置流程", "展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。"]
+      };
+      el("pageTitle").textContent = copy[tab][0];
+      el("pageDesc").textContent = copy[tab][1];
+    }
+
+    function addAlias(brand) {
+      const item = state.brands.find((row) => row.brand === brand);
+      if (!item) return;
+      const value = (item.aliasDraft || "").trim();
+      if (!value) {
+        toast("请先输入相似名称");
+        return;
+      }
+      if (item.aliases.includes(value)) {
+        toast("相似名称已存在");
+        return;
+      }
+      item.aliases.push(value);
+      item.aliasDraft = "";
+      item.devTime = nowText();
+      item.productTime = getRole() === "product" ? item.devTime : "";
+      item.status = getRole() === "product" ? "qa" : "product";
+      item.qaTime = "";
+      item.onlineTime = "";
+      toast(getRole() === "product" ? "已新增相似名称，并进入品质验收" : "已新增相似名称，并进入产品同意");
+      render();
+    }
+
+    function advance(item, action) {
+      if (action === "start") {
+        item.devTime = nowText();
+        item.productTime = getRole() === "product" ? item.devTime : "";
+        item.status = getRole() === "product" ? "qa" : "product";
+        item.qaTime = "";
+        item.onlineTime = "";
+      }
+      if (action === "product") {
+        item.status = "qa";
+        item.productTime = nowText();
+      }
+      if (action === "qa") {
+        item.status = "release";
+        item.qaTime = nowText();
+      }
+      if (action === "publish") {
+        item.status = "online";
+        item.onlineTime = nowText();
+      }
+    }
+
+    function publishAllReady() {
+      if (!canBatchPublish()) {
+        toast(getRole() === "super_admin" ? "仍有新增配置未验收，暂不可批量上线" : "仅超级管理员可批量上线");
+        return;
+      }
+      const ready = getChangedItems().filter((item) => item.status === "release");
+      ready.forEach((item) => advance(item, "publish"));
+      toast(ready.length ? `已上线 ${ready.length} 项配置` : "暂无已验收配置");
+      render();
+    }
+
+    function updateColorControl() {
+      const enabled = isDrinkColorEditable(el("foodTypeSelect").value, el("temperatureSelect").value);
+      el("colorSelect").disabled = !enabled;
+      if (!enabled) el("colorSelect").value = "default";
+    }
+
+    function openImageModal(src) {
+      if (!src) return;
+      el("imageModalImg").src = src;
+      el("imageModal").classList.remove("hidden");
+    }
+
+    function closeImageModal() {
+      el("imageModal").classList.add("hidden");
+      el("imageModalImg").removeAttribute("src");
+    }
+
+    function resetScreenshot() {
+      selectedScreenshot = "";
+      el("screenshotPreview").innerHTML = "未选";
+      el("screenshotInput").value = "";
+    }
+
+    document.querySelector(".nav").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-tab]");
+      if (button) switchTab(button.dataset.tab);
+    });
+
+    el("roleSelect").addEventListener("change", render);
+    el("brandSearch").addEventListener("input", renderBrands);
+    el("brandStatusFilter").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("brandStatusMenu").classList.toggle("hidden");
+    });
+    el("brandStatusMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-status-filter]");
+      if (!button) return;
+      brandStatusFilterValue = button.dataset.statusFilter;
+      el("brandStatusMenu").classList.add("hidden");
+      renderBrands();
+    });
+    el("drinkStatusFilter").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("drinkStatusMenu").classList.toggle("hidden");
+    });
+    el("drinkStatusMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-status-filter]");
+      if (!button) return;
+      drinkStatusFilterValue = button.dataset.statusFilter;
+      el("drinkStatusMenu").classList.add("hidden");
+      renderDrinks();
+    });
+    el("drinkMerchantFilter").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("drinkMerchantMenu").classList.toggle("hidden");
+    });
+    el("drinkMerchantMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-merchant-filter]");
+      if (!button) return;
+      drinkMerchantFilterValue = button.dataset.merchantFilter;
+      el("drinkMerchantMenu").classList.add("hidden");
+      renderDrinks();
+    });
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".status-filter-wrap")) {
+        el("brandStatusMenu").classList.add("hidden");
+        el("drinkStatusMenu").classList.add("hidden");
+        el("drinkMerchantMenu").classList.add("hidden");
+      }
+    });
+    el("drinkSearch").addEventListener("input", renderDrinks);
+    el("foodTypeSelect").addEventListener("change", updateColorControl);
+    el("temperatureSelect").addEventListener("change", updateColorControl);
+    el("screenshotInput").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) {
+        resetScreenshot();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedScreenshot = String(reader.result || "");
+        el("screenshotPreview").innerHTML = `<img src="${escapeHtml(selectedScreenshot)}" alt="餐品截屏预览">`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    el("brandRows").addEventListener("input", (event) => {
+      const input = event.target.closest("input[data-field='aliasDraft']");
+      if (!input) return;
+      const item = state.brands.find((row) => row.brand === input.dataset.brand);
+      if (item) item.aliasDraft = input.value;
+    });
+
+    document.body.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+      const action = target.dataset.action;
+      const brandItem = target.dataset.brand ? state.brands.find((item) => item.brand === target.dataset.brand) : null;
+      const drinkItem = target.dataset.id ? state.drinks.find((item) => item.id === target.dataset.id) : null;
+
+      if (action === "previewFoodImage" && drinkItem) {
+        openImageModal(drinkItem.screenshot);
+        return;
+      }
+      if (action === "addAlias") addAlias(target.dataset.brand);
+      if (action === "removeAlias" && brandItem) {
+        if (getRole() !== "super_admin") {
+          toast("仅超级管理员可删除相似名称");
+          return;
+        }
+        brandItem.aliases.splice(Number(target.dataset.index), 1);
+        if (!brandItem.aliases.length) {
+          brandItem.status = "draft";
+          brandItem.devTime = "";
+          brandItem.productTime = "";
+          brandItem.qaTime = "";
+          brandItem.onlineTime = "";
+        }
+        toast("已删除相似名称");
+        render();
+      }
+      if (action === "productApproveBrand" && brandItem) {
+        advance(brandItem, "product");
+        toast("产品已同意，进入品质验收");
+        render();
+      }
+      if (action === "qaAcceptBrand" && brandItem) {
+        advance(brandItem, "qa");
+        toast("品质已验收，进入配置流程");
+        render();
+      }
+      if (action === "publishBrand" && brandItem) {
+        advance(brandItem, "publish");
+        toast("品牌名称已上线");
+        render();
+      }
+      if (action === "productApproveDrink" && drinkItem) {
+        advance(drinkItem, "product");
+        toast("产品已同意，进入品质验收");
+        render();
+      }
+      if (action === "qaAcceptDrink" && drinkItem) {
+        advance(drinkItem, "qa");
+        toast("品质已验收，进入配置流程");
+        render();
+      }
+      if (action === "publishDrink" && drinkItem) {
+        advance(drinkItem, "publish");
+        toast("饮料颜色已上线");
+        render();
+      }
+      if (action === "deleteDrink" && drinkItem) {
+        if (getRole() !== "super_admin") {
+          toast("仅超级管理员可删除");
+          return;
+        }
+        state.drinks = state.drinks.filter((item) => item.id !== drinkItem.id);
+        toast("已删除饮料颜色");
+        render();
+      }
+    });
+
+    el("drinkForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!["dev", "product"].includes(getRole())) {
+        toast("当前仅开发或产品可新增配置");
+        return;
+      }
+      const createdAt = nowText();
+      const foodType = el("foodTypeSelect").value;
+      const temperature = el("temperatureSelect").value;
+      const item = {
+        id: makeId("drink"),
+        merchant: el("merchantInput").value.trim(),
+        foodName: el("foodNameInput").value.trim(),
+        screenshot: selectedScreenshot,
+        foodType,
+        temperature,
+        drinkColor: isDrinkColorEditable(foodType, temperature) ? el("colorSelect").value : "default",
+        status: getRole() === "product" ? "qa" : "product",
+        devTime: createdAt,
+        productTime: getRole() === "product" ? createdAt : "",
+        qaTime: "",
+        onlineTime: ""
+      };
+      if (!item.merchant || !item.foodName) return;
+      state.drinks.unshift(item);
+      event.target.reset();
+      resetScreenshot();
+      el("foodTypeSelect").value = "combo_default";
+      el("temperatureSelect").value = "hot";
+      updateColorControl();
+      toast(getRole() === "product" ? "已新增饮料颜色，并进入品质验收" : "已新增饮料颜色，并进入产品同意");
+      render();
+    });
+
+    el("publishReadyBtn").addEventListener("click", publishAllReady);
+    el("ssoLoginBtn").addEventListener("click", () => toast("原型阶段展示入口；正式上线后接入 SSO 自动登录"));
+    el("imageModal").addEventListener("click", closeImageModal);
+
+    initOptions();
+    updateColorControl();
+    render();
+  </script>
+</body>
+</html>
