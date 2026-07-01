@@ -1449,8 +1449,8 @@
         <section class="panel hidden" id="drinksPanel">
           <div class="panel-head">
             <div>
-              <h3>餐品信息</h3>
-              <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；用于管理和修正餐品类型、饮料颜色。</p>
+              <h3>配置说明</h3>
+              <p>可新增、修改或删除餐品信息，修正餐饮类型和饮料颜色。新增时，选择餐品截屏后，后台自动识别和提取餐品主图。</p>
             </div>
             <div class="panel-actions">
               <button class="btn primary" id="openDrinkModalBtn" type="button">新增</button>
@@ -2435,7 +2435,7 @@
       el("releasePanel").classList.toggle("hidden", tab !== "release");
       const copy = {
         brands: ["配置说明", "开发、产品、品质、管理员可新增或删除相似名称，审批动作在工单中心处理。"],
-        drinks: ["餐品信息", "开发或产品可发起餐品类型、饮料颜色修正，产品同意，品质验收后上线。"],
+        drinks: ["配置说明", "可新增、修改或删除餐品信息，修正餐饮类型和饮料颜色。新增时，选择餐品截屏后，后台自动识别和提取餐品主图。"],
         release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和管理员上线。"]
       };
       el("pageTitle").textContent = copy[tab][0];
