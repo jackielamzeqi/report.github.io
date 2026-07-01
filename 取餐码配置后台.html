@@ -1359,8 +1359,8 @@
     <main>
       <header class="topbar">
         <div class="title">
-          <h2 id="pageTitle">品牌信息</h2>
-          <p id="pageDesc">开发、产品、品质、管理员可新增和修改配置，审批动作统一在工单中心处理。</p>
+          <h2 id="pageTitle">配置说明</h2>
+          <p id="pageDesc">开发、产品、品质、管理员可新增或删除相似名称，审批动作在工单中心处理。</p>
         </div>
         <div class="toolbar">
           <label class="tool-btn file-import-btn" for="configImportInput" title="导入配置文件"><span class="tool-icon">⬆</span>导入</label>
@@ -2434,7 +2434,7 @@
       el("drinksPanel").classList.toggle("hidden", tab !== "drinks");
       el("releasePanel").classList.toggle("hidden", tab !== "release");
       const copy = {
-        brands: ["品牌信息", "开发、产品、品质、管理员可新增和修改配置，审批动作统一在工单中心处理。"],
+        brands: ["配置说明", "开发、产品、品质、管理员可新增或删除相似名称，审批动作在工单中心处理。"],
         drinks: ["餐品信息", "开发或产品可发起餐品类型、饮料颜色修正，产品同意，品质验收后上线。"],
         release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和管理员上线。"]
       };
