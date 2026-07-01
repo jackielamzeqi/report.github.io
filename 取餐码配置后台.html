@@ -1454,6 +1454,7 @@
             </div>
             <div class="panel-actions">
               <button class="btn primary" id="openDrinkModalBtn" type="button">新增</button>
+              <input id="drinkNameSearch" class="search-input" type="search" placeholder="搜索餐品名称">
             </div>
           </div>
           <div class="table-wrap">
@@ -2335,17 +2336,19 @@
     }
 
     function renderDrinks() {
+      const keyword = el("drinkNameSearch").value.trim().toLowerCase();
       const statusFilter = drinkStatusFilterValue;
       const merchantFilter = drinkMerchantFilterValue;
       const typeFilter = drinkTypeFilterValue;
       const colorFilter = drinkColorFilterValue;
       const rows = state.drinks.filter((item) => {
         const colorDisplay = getDrinkColorDisplay(item);
+        const keywordMatched = !keyword || item.foodName.toLowerCase().includes(keyword);
         const statusMatched = statusFilter === "all" || item.status === statusFilter;
         const merchantMatched = merchantFilter === "all" || item.merchant === merchantFilter;
         const typeMatched = typeFilter === "all" || item.foodType === typeFilter;
         const colorMatched = colorFilter === "all" || colorDisplay === colorFilter;
-        return statusMatched && merchantMatched && typeMatched && colorMatched;
+        return keywordMatched && statusMatched && merchantMatched && typeMatched && colorMatched;
       }).map((item) => {
         const color = getColorInfo(item.drinkColor);
         const iconColor = isDrinkColorEditable(item.foodType, item.temperature) ? color.hex : "#c9d3df";
@@ -2620,6 +2623,7 @@
     el("exportBtn").addEventListener("click", exportConfig);
     el("configImportInput").addEventListener("change", (event) => importConfigFile(event.target.files[0]));
     el("openDrinkModalBtn").addEventListener("click", openDrinkModal);
+    el("drinkNameSearch").addEventListener("input", renderDrinks);
     el("closeDrinkModalBtn").addEventListener("click", closeDrinkModal);
     el("cancelDrinkAddBtn").addEventListener("click", closeDrinkModal);
     el("drinkModal").addEventListener("click", (event) => {
