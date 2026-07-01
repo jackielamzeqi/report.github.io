@@ -836,6 +836,21 @@
       line-height: 1.35;
     }
 
+    .modify-time-list {
+      display: grid;
+      gap: 4px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .modify-time-list strong {
+      color: #162231;
+      font-weight: 800;
+      margin-right: 6px;
+    }
+
     .inline-edit {
       width: 100%;
       min-width: 0;
@@ -1348,8 +1363,8 @@
           <p id="pageDesc">开发、产品、品质、管理员可新增和修改配置，审批动作统一在工单中心处理。</p>
         </div>
         <div class="toolbar">
-          <button class="tool-btn" id="exportBtn" type="button" title="导出当前配置"><span class="tool-icon">⬇</span>导出</button>
           <label class="tool-btn file-import-btn" for="configImportInput" title="导入配置文件"><span class="tool-icon">⬆</span>导入</label>
+          <button class="tool-btn" id="exportBtn" type="button" title="导出当前配置"><span class="tool-icon">⬇</span>导出</button>
           <input id="configImportInput" class="hidden" type="file" accept="application/json,.json">
           <div class="login-box hidden" id="loginBox">
             <input id="employeeInput" class="employee-input" inputmode="numeric" placeholder="输入工号">
@@ -2006,13 +2021,51 @@
       return match ? new Date(match[1].replace(" ", "T")).getTime() : 0;
     }
 
-    function getModifyTime(item) {
-      const values = [item.devTime, item.productTime, item.qaTime, item.onlineTime].filter(Boolean);
-      return values.sort((a, b) => getTimeStamp(b) - getTimeStamp(a))[0] || "-";
+    function getActorText() {
+      const role = getRole();
+      const employee = currentEmployee || "未登录";
+      return `${getRoleMeta(role).name} ${employee}`;
+    }
+
+    function markOperate(item, timeKey, actionLabel, time = nowText()) {
+      const remarkKey = `${timeKey}Remark`;
+      item[timeKey] = time;
+      item[remarkKey] = `${actionLabel} ${getActorText()}`;
+      return time;
+    }
+
+    function getModifyEvents(item) {
+      const defs = [
+        { key: "devTime", remark: "devTimeRemark", fallback: item.devAction || "新增/修改" },
+        { key: "productTime", remark: "productTimeRemark", fallback: "同意" },
+        { key: "qaTime", remark: "qaTimeRemark", fallback: "验收" },
+        { key: "onlineTime", remark: "onlineTimeRemark", fallback: "上线" }
+      ];
+      const seen = new Set();
+      return defs.map((def) => {
+        const raw = item[def.key];
+        const stamp = getTimeStamp(raw);
+        if (!stamp) return null;
+        const time = String(raw).match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/)?.[1] || String(raw);
+        const isImported = String(raw).includes("初始化导入") || item[def.remark] === "初始化导入";
+        const remark = isImported ? "初始化导入" : item[def.remark] || def.fallback;
+        const token = `${time}|${remark}`;
+        if (seen.has(token)) return null;
+        seen.add(token);
+        return { time, stamp, remark, isImported };
+      }).filter(Boolean).sort((a, b) => b.stamp - a.stamp);
+    }
+
+    function getModifySortStamp(item) {
+      const events = getModifyEvents(item);
+      const businessEvent = events.find((event) => !event.isImported);
+      return (businessEvent || events[0] || { stamp: 0 }).stamp;
     }
 
     function getModifyTimeHtml(item) {
-      return `<span>${escapeHtml(getModifyTime(item))}</span>`;
+      const events = getModifyEvents(item);
+      if (!events.length) return `<span>-</span>`;
+      return `<div class="modify-time-list">${events.map((event) => `<span><strong>${escapeHtml(event.time)}</strong>${escapeHtml(event.remark)}</span>`).join("")}</div>`;
     }
 
     function canAct(item, target) {
@@ -2333,7 +2386,7 @@
       const items = [
         ...state.brands.filter((item) => item.aliases.length || item.status !== "draft").map((item) => ({ kind: "品牌信息", ref: item.brand, item })),
         ...state.drinks.map((item) => ({ kind: "餐品信息", ref: item.id, item }))
-      ].sort((a, b) => getTimeStamp(getModifyTime(b.item)) - getTimeStamp(getModifyTime(a.item)));
+      ].sort((a, b) => getModifySortStamp(b.item) - getModifySortStamp(a.item));
       const rows = items.map(({ kind, item }) => {
         const content = kind === "品牌信息"
           ? `${item.name} / ${item.brand} / 相似名称：${item.aliases.join("、") || "-"}`
@@ -2397,34 +2450,48 @@
       }
       item.aliases.push(value);
       item.aliasDraft = "";
-      item.devTime = nowText();
-      item.productTime = getRole() === "product" ? item.devTime : "";
+      const createdAt = markOperate(item, "devTime", "新增");
+      item.devAction = "新增";
+      item.productTime = "";
+      item.productTimeRemark = "";
+      if (getRole() === "product") {
+        markOperate(item, "productTime", "同意", createdAt);
+      }
       item.status = getRole() === "product" ? "qa" : "product";
       item.qaTime = "";
+      item.qaTimeRemark = "";
       item.onlineTime = "";
+      item.onlineTimeRemark = "";
       toast(getRole() === "product" ? "已新增相似名称，并进入品质验收" : "已新增相似名称，并进入产品同意");
       render();
     }
 
     function advance(item, action) {
       if (action === "start") {
-        item.devTime = nowText();
-        item.productTime = getRole() === "product" ? item.devTime : "";
+        const startedAt = markOperate(item, "devTime", "新增");
+        item.devAction = "新增";
+        item.productTime = "";
+        item.productTimeRemark = "";
+        if (getRole() === "product") {
+          markOperate(item, "productTime", "同意", startedAt);
+        }
         item.status = getRole() === "product" ? "qa" : "product";
         item.qaTime = "";
+        item.qaTimeRemark = "";
         item.onlineTime = "";
+        item.onlineTimeRemark = "";
       }
       if (action === "product") {
         item.status = "qa";
-        item.productTime = nowText();
+        markOperate(item, "productTime", "同意");
       }
       if (action === "qa") {
         item.status = "release";
-        item.qaTime = nowText();
+        markOperate(item, "qaTime", "验收");
       }
       if (action === "publish") {
         item.status = "online";
-        item.onlineTime = nowText();
+        markOperate(item, "onlineTime", "上线");
       }
     }
 
@@ -2485,10 +2552,17 @@
       item.drinkColor = drinkColor;
       if (item.status === "online") {
         item.status = "product";
-        item.devTime = nowText();
+        markOperate(item, "devTime", "修改");
+        item.devAction = "修改";
         item.productTime = "";
+        item.productTimeRemark = "";
         item.qaTime = "";
+        item.qaTimeRemark = "";
         item.onlineTime = "";
+        item.onlineTimeRemark = "";
+      } else {
+        markOperate(item, "devTime", "修改");
+        item.devAction = "修改";
       }
       editingDrinkId = "";
       toast("已修改餐品信息");
@@ -2716,10 +2790,15 @@
         brandItem.aliases.splice(Number(target.dataset.index), 1);
         if (!brandItem.aliases.length) {
           brandItem.status = "draft";
+          brandItem.devAction = "";
           brandItem.devTime = "";
+          brandItem.devTimeRemark = "";
           brandItem.productTime = "";
+          brandItem.productTimeRemark = "";
           brandItem.qaTime = "";
+          brandItem.qaTimeRemark = "";
           brandItem.onlineTime = "";
+          brandItem.onlineTimeRemark = "";
         }
         toast("已删除相似名称");
         render();
@@ -2778,6 +2857,7 @@
       const createdAt = nowText();
       const foodType = el("foodTypeSelect").value;
       const temperature = el("temperatureSelect").value;
+      const isProductStarter = getRole() === "product";
       const item = {
         id: makeId("drink"),
         merchant: el("merchantInput").value.trim(),
@@ -2786,11 +2866,16 @@
         foodType,
         temperature,
         drinkColor: isDrinkColorEditable(foodType, temperature) ? el("colorSelect").value : "default",
-        status: getRole() === "product" ? "qa" : "product",
+        status: isProductStarter ? "qa" : "product",
         devTime: createdAt,
-        productTime: getRole() === "product" ? createdAt : "",
+        devAction: "新增",
+        devTimeRemark: `新增 ${getActorText()}`,
+        productTime: isProductStarter ? createdAt : "",
+        productTimeRemark: isProductStarter ? `同意 ${getActorText()}` : "",
         qaTime: "",
-        onlineTime: ""
+        qaTimeRemark: "",
+        onlineTime: "",
+        onlineTimeRemark: ""
       };
       if (!item.merchant || !item.foodName) {
         toast("请填写餐品名称和商家");
