@@ -954,12 +954,11 @@
         <div class="mark-icon">取</div>
         <div>
           <h1>取餐码配置后台</h1>
-          <p>仅对取餐码生效</p>
         </div>
       </div>
       <nav class="nav" aria-label="配置模块">
-        <button class="active" data-tab="brands" title="品牌名称">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v6H4z"></path><path d="M4 14h7v6H4z"></path><path d="M13 14h7v6h-7z"></path></svg></span><span>品牌名称</span><span class="nav-count" id="brandCount">98</span>
+        <button class="active" data-tab="brands" title="品牌信息">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v6H4z"></path><path d="M4 14h7v6H4z"></path><path d="M13 14h7v6h-7z"></path></svg></span><span>品牌信息</span><span class="nav-count" id="brandCount">98</span>
         </button>
         <button data-tab="drinks" title="餐品信息">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"></path><path d="M9 15a3 3 0 0 0 3 3"></path></svg></span><span>餐品信息</span><span class="nav-count" id="drinkCount">0</span>
@@ -979,7 +978,7 @@
     <main>
       <header class="topbar">
         <div class="title">
-          <h2 id="pageTitle">品牌名称</h2>
+          <h2 id="pageTitle">品牌信息</h2>
           <p id="pageDesc">开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。</p>
         </div>
         <div class="toolbar">
@@ -1530,14 +1529,14 @@
 
     function renderRelease() {
       const items = [
-        ...state.brands.filter((item) => item.aliases.length || item.status !== "draft").map((item) => ({ kind: "品牌名称", ref: item.brand, item })),
+        ...state.brands.filter((item) => item.aliases.length || item.status !== "draft").map((item) => ({ kind: "品牌信息", ref: item.brand, item })),
         ...state.drinks.map((item) => ({ kind: "餐品信息", ref: item.id, item }))
       ];
       const rows = items.map(({ kind, item }) => {
-        const content = kind === "品牌名称"
+        const content = kind === "品牌信息"
           ? `${item.name} / ${item.brand} / 相似名称：${item.aliases.join("、") || "-"}`
           : `${item.merchant} / ${item.foodName} / ${typeLabels[item.foodType]} / ${tempLabels[item.temperature]} / ${getDrinkColorDisplay(item)}`;
-        const action = kind === "品牌名称"
+        const action = kind === "品牌信息"
           ? `<div class="action-row">
               <button class="icon-btn word ok" title="产品同意" data-action="productApproveBrand" data-brand="${item.brand}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
               <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptBrand" data-brand="${item.brand}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
@@ -1574,7 +1573,7 @@
       el("drinksPanel").classList.toggle("hidden", tab !== "drinks");
       el("releasePanel").classList.toggle("hidden", tab !== "release");
       const copy = {
-        brands: ["品牌名称", "开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。"],
+        brands: ["品牌信息", "开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。"],
         drinks: ["餐品信息", "开发或产品可发起餐品类型、饮料颜色修正，产品同意，品质验收后上线。"],
         release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。"]
       };
@@ -1781,7 +1780,7 @@
       }
       if (action === "publishBrand" && brandItem) {
         advance(brandItem, "publish");
-        toast("品牌名称已上线");
+        toast("品牌信息已上线");
         render();
       }
       if (action === "productApproveDrink" && drinkItem) {
