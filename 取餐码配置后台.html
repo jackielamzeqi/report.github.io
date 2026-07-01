@@ -583,8 +583,8 @@
     }
 
     .release-table {
-      width: 1320px;
-      max-width: none;
+      width: 100%;
+      min-width: 1180px;
     }
 
     thead th {
@@ -851,13 +851,14 @@
       color: #64748b;
       font-size: 12px;
       line-height: 1.35;
-      white-space: nowrap;
+      white-space: normal;
     }
 
     .modify-time-list strong {
       color: #162231;
       font-weight: 800;
       margin-right: 6px;
+      white-space: nowrap;
     }
 
     .inline-edit {
@@ -1523,11 +1524,11 @@
             <table class="release-table">
               <thead>
                 <tr>
-                  <th style="width: 110px;">类型</th>
-                  <th style="width: 520px;">配置内容</th>
-                  <th style="width: 120px;">状态</th>
-                  <th style="width: 360px;">处理时间</th>
-                  <th style="width: 190px;">操作</th>
+                  <th style="width: 8%;">类型</th>
+                  <th style="width: 44%;">配置内容</th>
+                  <th style="width: 16%;">状态</th>
+                  <th style="width: 16%;">处理时间</th>
+                  <th style="width: 16%;">操作</th>
                 </tr>
               </thead>
               <tbody id="releaseRows"></tbody>
