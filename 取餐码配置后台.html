@@ -602,9 +602,15 @@
     .food-text strong {
       display: block;
       max-width: 100%;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .brand-text,
+    .food-text {
+      min-width: 0;
     }
 
     .brand-text span,
@@ -769,6 +775,12 @@
       border-color: var(--red);
     }
 
+    .icon-btn.save {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
     .icon-btn:disabled {
       color: #a4b0bf;
       background: #edf1f5;
@@ -781,6 +793,20 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.35;
+    }
+
+    .inline-edit {
+      width: 100%;
+      min-width: 0;
+      height: 34px;
+      border-radius: 8px;
+      padding: 0 8px;
+      font-size: 13px;
+    }
+
+    .inline-edit:disabled {
+      color: #8b98a9;
+      background: #eef2f6;
     }
 
     .food-icon {
@@ -913,7 +939,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 178px minmax(190px, 1fr) minmax(210px, 1fr) 124px 100px 136px 72px 72px;
+      grid-template-columns: 178px minmax(190px, 1fr) minmax(210px, 1fr) 124px 100px 136px 72px;
       gap: 8px;
       align-items: end;
       padding: 12px 14px;
@@ -1284,7 +1310,6 @@
                       </span>
                     </span>
                   </th>
-                  <th style="width: 182px;">操作</th>
                 </tr>
               </thead>
               <tbody id="brandRows"></tbody>
@@ -1344,7 +1369,6 @@
               <select id="colorSelect" disabled></select>
             </div>
             <button class="btn primary" type="submit">新增</button>
-            <button class="btn" id="updateDrinkBtn" type="button" disabled>修改</button>
           </form>
           <div class="table-wrap">
             <table>
@@ -1404,9 +1428,6 @@
               <h3>工单中心</h3>
               <p>展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn primary" id="publishReadyBtn">批量上线</button>
-            </div>
           </div>
           <div class="table-wrap">
             <table>
@@ -1440,7 +1461,7 @@
     const ROLE_KEY = "pickup-code-config-console-role";
     const brandValues = "luckin_coffee,starbucks,kfc,mcdonalds,mxbc,heytea,cotti_coffee,lucky_cup,pacific_coffee,peets_coffee,chagee,manner_coffee,m_stand,chapanda,nayuki,auntea_jenny,good_me,uncle_q,yihetang,nowwa,1diandian,tasiting,cnhls,ah_ma_handmade,coco,shuyisxc,quchashan,no_yeye_no_tea,tea_monster,juancha,molantea,joes_tea,gong_cha,moning,hero_tea,tims,charliestea,beautea_care,cha_yue_shan,bao_zhu_gong,bao_zhe,molly_tea,yotea,swilloo,kosk,ayogurtcow,ningjitea,chafalls,ye_cui_shan,chaocmg,sen_lin_zi,jpg,arabica,grid_coffee,kuddo,blue_bottle_coffee,costa_coffee,something_for,kcoffee,paix,shan_chi,blend,yu_lian_cha_lou,hun_juice,ru_xu,pizza_hut,more_yogurt,yogurt_cans,blueglass,bluebear,cyystea,dairy_queen,tian_la_la,cha_hua_nong,a_shui_tea,befinecha,linlee,algebraist,beanstar_coffee,seesaw_coffee,lavazza,dicos,burger_king,shake_shack,meet_fresh,honeymoon_dessert,asis,yu_tian_tian,li_ruo_tao,subway,lemon_right,qian_yu_ben_pu,dakotea,chun_feng,danmacha,tamkoko,chen_mandi,yoshinoya".split(",");
     const brandNames = "瑞幸咖啡,星巴克,肯德基,麦当劳,蜜雪冰城,喜茶,库迪咖啡,幸运咖,太平洋咖啡,Peets皮爷咖啡,霸王茶姬,MannerCoffee,M Stand咖啡,茶百道,奈雪的茶,沪上阿姨,古茗,丘大叔柠檬茶,益禾堂,NOWWA挪瓦咖啡,1点点,塔斯汀,华莱士,阿嬷手作,Coco都可,书亦烧仙草,去茶山,爷爷不泡茶,茶力的小怪兽,眷茶臻选,东方墨蘭,茶救星球,贡茶,摩柠手作,英歌魂,Tims天好咖啡,茶理宜世,姜大力,茶月山,煲珠公,爆蔗,茉莉奶白,有茶,斯味洛,KOSK可斯克,一只酸奶牛,柠季,茶瀑布,野萃山,茶亦青,森林子,JPG,ARABICA,Grid Coffee,Kuddo,蓝瓶咖啡,COSTA,SomethingFor咖啡,肯悦咖啡,PAIX,山池咖啡SAANCI,blend,裕莲茶楼,混果汁,入续,必胜客,茉酸奶,酸奶罐罐,Blueglass,兰熊鲜奶,茶颜悦色,Dairy Queen,甜啦啦,茶话弄,阿水大杯茶,百分茶,林里,代数学家,比星咖啡,Seesaw,LAVAZZA,德克士,汉堡王,ShakeShack,鲜芋仙,满记甜品,宝藏绿洲,芋田田,李若桃,赛百味,柠檬向右,千芋本铺,麒麟大口茶,椿风手作,淡马茶坊,Tamkoko,陈文鼎,吉野家".split(",");
-    const merchantOptions = [...brandNames, "其他"];
+    const merchantOptions = [...brandNames];
     const drinkColors = [
       { value: "black", label: "black 黑色", hex: "#1f2933" },
       { value: "orange", label: "orange 橙色", hex: "#f47b20" },
@@ -1482,7 +1503,7 @@
     let drinkMerchantFilterValue = "all";
     let drinkTypeFilterValue = "all";
     let drinkColorFilterValue = "all";
-    let selectedDrinkId = "";
+    let editingDrinkId = "";
     let currentEmployee = localStorage.getItem(ACCOUNT_KEY) || "11188601";
     let currentRole = localStorage.getItem(ROLE_KEY) || "";
 
@@ -1854,12 +1875,6 @@
       return [...changedBrands, ...state.drinks];
     }
 
-    function canBatchPublish() {
-      const role = getRole();
-      const changed = getChangedItems();
-      return role === "super_admin" && changed.some((item) => item.status === "release") && changed.every((item) => ["release", "online"].includes(item.status));
-    }
-
     function toast(message) {
       const node = el("toast");
       node.textContent = message;
@@ -1877,7 +1892,7 @@
       const matched = merchantOptions.filter((name) => name.toLowerCase().includes(keyword));
       el("merchantMenu").innerHTML = matched.length
         ? matched.map((name) => `<button type="button" class="${name === el("merchantInput").value.trim() ? "active" : ""}" data-merchant-option="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")
-        : `<div class="combo-empty">无匹配品牌，可手动输入</div>`;
+        : `<div class="combo-empty">无匹配品牌</div>`;
     }
 
     function openMerchantMenu() {
@@ -1892,6 +1907,10 @@
     function selectMerchant(name) {
       el("merchantInput").value = name;
       closeMerchantMenu();
+    }
+
+    function isPresetMerchant(name) {
+      return merchantOptions.includes(name);
     }
 
     function updateMetrics() {
@@ -1912,15 +1931,13 @@
       updateMetricAction("metricProduct", "product", productPending);
       updateMetricAction("metricQa", "qa", qaPending);
       updateMetricAction("metricReady", "release", ready);
-      el("publishReadyBtn").disabled = !canBatchPublish();
     }
 
     function updateMetricAction(id, status, count) {
       const node = el(id);
-      const enabled = count > 0 && canOpenWorkOrders(status);
       const actionLabel = status === "product" ? "同意" : status === "qa" ? "验收" : "上线";
-      node.disabled = !enabled;
-      node.title = enabled ? `进入工单中心处理${actionLabel}` : `当前角色暂无${actionLabel}权限或无待处理项`;
+      node.disabled = false;
+      node.title = `进入工单中心处理${actionLabel}工单`;
     }
 
     function getScreenshotHtml(value) {
@@ -2023,6 +2040,45 @@
       el("drinkColorFilter").title = `饮料颜色筛选：${currentLabel}`;
     }
 
+    function optionTags(options, selectedValue) {
+      return options.map((option) => {
+        const value = typeof option === "string" ? option : option.value;
+        const label = typeof option === "string" ? option : option.label;
+        return `<option value="${escapeHtml(value)}" ${value === selectedValue ? "selected" : ""}>${escapeHtml(label)}</option>`;
+      }).join("");
+    }
+
+    function merchantOptionTags(selectedValue) {
+      const options = merchantOptions.includes(selectedValue) || !selectedValue
+        ? merchantOptions
+        : [selectedValue, ...merchantOptions];
+      return optionTags(options, selectedValue);
+    }
+
+    function getDrinkEditCells(item, iconColor) {
+      const colorEditable = isDrinkColorEditable(item.foodType, item.temperature);
+      return `
+          <td>
+            <div class="food-cell">
+              ${getFoodVisualHtml(item, iconColor)}
+              <input class="inline-edit" data-edit-field="foodName" value="${escapeHtml(item.foodName)}" placeholder="餐品名称">
+            </div>
+          </td>
+          <td><select class="inline-edit" data-edit-field="merchant">${merchantOptionTags(item.merchant)}</select></td>
+          <td><select class="inline-edit" data-edit-field="foodType">${optionTags([
+            { value: "tea", label: typeLabels.tea },
+            { value: "coffee", label: typeLabels.coffee },
+            { value: "dessert", label: typeLabels.dessert },
+            { value: "fastfood", label: typeLabels.fastfood },
+            { value: "combo_default", label: typeLabels.combo_default }
+          ], item.foodType)}</select></td>
+          <td><select class="inline-edit" data-edit-field="temperature">${optionTags([
+            { value: "cold", label: tempLabels.cold },
+            { value: "hot", label: tempLabels.hot }
+          ], item.temperature)}</select></td>
+          <td><select class="inline-edit" data-edit-field="drinkColor" ${colorEditable ? "" : "disabled"}>${optionTags(drinkColors, colorEditable ? item.drinkColor || "default" : "default")}</select></td>`;
+    }
+
     function renderBrands() {
       const keyword = el("brandSearch").value.trim().toLowerCase();
       const statusFilter = brandStatusFilterValue;
@@ -2055,16 +2111,9 @@
           </td>
           <td></td>
           <td>${getStatusHtml(item.status)}</td>
-          <td>
-            <div class="action-row">
-              <button class="icon-btn word ok" title="产品同意" data-action="productApproveBrand" data-brand="${item.brand}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
-              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptBrand" data-brand="${item.brand}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
-              <button class="icon-btn word" title="上线" data-action="publishBrand" data-brand="${item.brand}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
-            </div>
-          </td>
         </tr>`;
       }).join("");
-      el("brandRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">没有匹配的品牌</div></td></tr>`;
+      el("brandRows").innerHTML = rows || `<tr><td colspan="6"><div class="empty">没有匹配的品牌</div></td></tr>`;
       updateBrandStatusFilterUi();
     }
 
@@ -2083,23 +2132,28 @@
       }).map((item) => {
         const color = getColorInfo(item.drinkColor);
         const iconColor = isDrinkColorEditable(item.foodType, item.temperature) ? color.hex : "#c9d3df";
-        return `<tr data-drink-row="${item.id}" class="${item.id === selectedDrinkId ? "selected" : ""}">
+        const editing = item.id === editingDrinkId;
+        const cells = editing ? getDrinkEditCells(item, iconColor) : `
           <td>
             <div class="food-cell">
               ${getFoodVisualHtml(item, iconColor)}
-              <div class="food-text"><strong title="${escapeHtml(item.foodName)}">${escapeHtml(item.foodName)}</strong><span>餐品图标</span></div>
+              <div class="food-text"><strong title="${escapeHtml(item.foodName)}">${escapeHtml(item.foodName)}</strong></div>
             </div>
           </td>
           <td>${escapeHtml(item.merchant)}</td>
           <td>${escapeHtml(typeLabels[item.foodType])}</td>
           <td>${escapeHtml(tempLabels[item.temperature])}</td>
-          <td>${escapeHtml(getDrinkColorDisplay(item))}</td>
+          <td>${escapeHtml(getDrinkColorDisplay(item))}</td>`;
+        const actions = editing
+          ? `<button class="icon-btn word save" title="保存修改" data-action="saveDrinkEdit" data-id="${item.id}">保存</button>
+              <button class="icon-btn word" title="取消修改" data-action="cancelDrinkEdit" data-id="${item.id}">取消</button>`
+          : `<button class="icon-btn word" title="修改餐品信息" data-action="editDrink" data-id="${item.id}">修改</button>`;
+        return `<tr data-drink-row="${item.id}" class="${editing ? "selected" : ""}">
+          ${cells}
           <td>${getStatusHtml(item.status)}</td>
           <td>
             <div class="action-row">
-              <button class="icon-btn word ok" title="产品同意" data-action="productApproveDrink" data-id="${item.id}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
-              <button class="icon-btn word warn" title="品质验收" data-action="qaAcceptDrink" data-id="${item.id}" ${canAct(item, "qa") ? "" : "disabled"}>验收</button>
-              <button class="icon-btn word" title="上线" data-action="publishDrink" data-id="${item.id}" ${canAct(item, "online") ? "" : "disabled"}>上线</button>
+              ${actions}
               <button class="icon-btn word danger" title="删除" data-action="deleteDrink" data-id="${item.id}" ${getRole() === "super_admin" ? "" : "disabled"}>删除</button>
             </div>
           </td>
@@ -2110,7 +2164,6 @@
       updateDrinkTypeFilterUi();
       updateDrinkColorFilterUi();
       updateDrinkStatusFilterUi();
-      updateDrinkSelectionUi();
     }
 
     function renderRelease() {
@@ -2212,70 +2265,50 @@
       }
     }
 
-    function publishAllReady() {
-      if (!canBatchPublish()) {
-        toast(getRole() === "super_admin" ? "仍有新增配置未验收，暂不可批量上线" : "仅超级管理员可批量上线");
-        return;
-      }
-      const ready = getChangedItems().filter((item) => item.status === "release");
-      ready.forEach((item) => advance(item, "publish"));
-      toast(ready.length ? `已上线 ${ready.length} 项配置` : "暂无已验收配置");
-      render();
-    }
-
     function updateColorControl() {
       const enabled = isDrinkColorEditable(el("foodTypeSelect").value, el("temperatureSelect").value);
       el("colorSelect").disabled = !enabled;
       if (!enabled) el("colorSelect").value = "default";
     }
 
-    function getSelectedDrink() {
-      return state.drinks.find((item) => item.id === selectedDrinkId);
+    function getInlineDrinkValue(row, field) {
+      return row?.querySelector(`[data-edit-field="${field}"]`)?.value.trim() || "";
     }
 
-    function updateDrinkSelectionUi() {
-      const selected = getSelectedDrink();
-      el("updateDrinkBtn").disabled = !selected;
+    function syncInlineDrinkColor(row) {
+      const foodType = getInlineDrinkValue(row, "foodType");
+      const temperature = getInlineDrinkValue(row, "temperature");
+      const colorSelect = row.querySelector("[data-edit-field='drinkColor']");
+      if (!colorSelect) return;
+      const enabled = isDrinkColorEditable(foodType, temperature);
+      colorSelect.disabled = !enabled;
+      if (!enabled) colorSelect.value = "default";
     }
 
-    function clearDrinkSelection() {
-      selectedDrinkId = "";
-      updateDrinkSelectionUi();
-      renderDrinks();
-    }
-
-    function fillDrinkForm(item) {
-      el("foodNameInput").value = item.foodName || "";
-      el("merchantInput").value = item.merchant || "";
-      renderMerchantMenu();
-      el("foodTypeSelect").value = item.foodType || "combo_default";
-      el("temperatureSelect").value = item.temperature || "hot";
-      updateColorControl();
-      el("colorSelect").value = isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor || "default" : "default";
-      selectedScreenshot = item.screenshot || "";
-      el("screenshotPreview").innerHTML = selectedScreenshot ? `<img src="${escapeHtml(selectedScreenshot)}" alt="餐品截屏预览">` : "未选";
-    }
-
-    function updateSelectedDrink() {
-      const item = getSelectedDrink();
-      if (!item) {
-        toast("请先选择一条餐品信息");
+    function saveInlineDrink(id) {
+      const item = state.drinks.find((row) => row.id === id);
+      const row = document.querySelector(`[data-drink-row="${id}"]`);
+      if (!item || !row) {
+        toast("未找到餐品信息");
         return;
       }
-      const foodName = el("foodNameInput").value.trim();
-      const merchant = el("merchantInput").value.trim();
+      const foodName = getInlineDrinkValue(row, "foodName");
+      const merchant = getInlineDrinkValue(row, "merchant");
       if (!foodName || !merchant) {
         toast("请填写餐品名称和商家");
         return;
       }
-      const foodType = el("foodTypeSelect").value;
-      const temperature = el("temperatureSelect").value;
+      if (!isPresetMerchant(merchant)) {
+        toast("请选择预置品牌商家");
+        return;
+      }
+      const foodType = getInlineDrinkValue(row, "foodType");
+      const temperature = getInlineDrinkValue(row, "temperature");
       item.foodName = foodName;
       item.merchant = merchant;
       item.foodType = foodType;
       item.temperature = temperature;
-      item.drinkColor = isDrinkColorEditable(foodType, temperature) ? el("colorSelect").value : "default";
-      item.screenshot = selectedScreenshot;
+      item.drinkColor = isDrinkColorEditable(foodType, temperature) ? getInlineDrinkValue(row, "drinkColor") : "default";
       if (item.status === "online") {
         item.status = getRole() === "product" ? "qa" : "product";
         item.devTime = nowText();
@@ -2283,6 +2316,7 @@
         item.qaTime = "";
         item.onlineTime = "";
       }
+      editingDrinkId = "";
       toast("已修改餐品信息");
       render();
     }
@@ -2430,7 +2464,6 @@
     });
     el("foodTypeSelect").addEventListener("change", updateColorControl);
     el("temperatureSelect").addEventListener("change", updateColorControl);
-    el("updateDrinkBtn").addEventListener("click", updateSelectedDrink);
     el("screenshotInput").addEventListener("change", (event) => {
       const file = event.target.files[0];
       if (!file) {
@@ -2452,14 +2485,10 @@
       if (item) item.aliasDraft = input.value;
     });
 
-    el("drinkRows").addEventListener("click", (event) => {
-      if (event.target.closest("[data-action]")) return;
+    el("drinkRows").addEventListener("change", (event) => {
+      if (!event.target.closest("[data-edit-field='foodType'], [data-edit-field='temperature']")) return;
       const row = event.target.closest("[data-drink-row]");
-      if (!row) return;
-      selectedDrinkId = row.dataset.drinkRow;
-      const item = getSelectedDrink();
-      if (item) fillDrinkForm(item);
-      renderDrinks();
+      if (row) syncInlineDrinkColor(row);
     });
 
     document.body.addEventListener("click", (event) => {
@@ -2471,6 +2500,20 @@
 
       if (action === "previewFoodImage" && drinkItem) {
         openImageModal(drinkItem.screenshot);
+        return;
+      }
+      if (action === "editDrink" && drinkItem) {
+        editingDrinkId = drinkItem.id;
+        renderDrinks();
+        return;
+      }
+      if (action === "cancelDrinkEdit") {
+        editingDrinkId = "";
+        renderDrinks();
+        return;
+      }
+      if (action === "saveDrinkEdit") {
+        saveInlineDrink(target.dataset.id);
         return;
       }
       if (action === "addAlias") addAlias(target.dataset.brand);
@@ -2526,7 +2569,7 @@
           return;
         }
         state.drinks = state.drinks.filter((item) => item.id !== drinkItem.id);
-        if (selectedDrinkId === drinkItem.id) selectedDrinkId = "";
+        if (editingDrinkId === drinkItem.id) editingDrinkId = "";
         toast("已删除餐品信息");
         render();
       }
@@ -2556,8 +2599,12 @@
         onlineTime: ""
       };
       if (!item.merchant || !item.foodName) return;
+      if (!isPresetMerchant(item.merchant)) {
+        toast("请选择预置品牌商家");
+        return;
+      }
       state.drinks.unshift(item);
-      selectedDrinkId = "";
+      editingDrinkId = "";
       event.target.reset();
       closeMerchantMenu();
       resetScreenshot();
@@ -2568,7 +2615,6 @@
       render();
     });
 
-    el("publishReadyBtn").addEventListener("click", publishAllReady);
     el("imageModal").addEventListener("click", closeImageModal);
 
     initOptions();
