@@ -2153,9 +2153,12 @@
     function updateMetricAction(id, status, count) {
       const node = el(id);
       const actionLabel = status === "product" ? "同意" : status === "qa" ? "验收" : "上线";
-      const enabled = canOpenWorkOrders(status);
+      const hasPermission = canOpenWorkOrders(status);
+      const enabled = hasPermission && count > 0;
       node.disabled = !enabled;
-      node.title = enabled ? `进入工单中心处理${actionLabel}工单` : `当前角色无${actionLabel}权限`;
+      node.title = enabled
+        ? `进入工单中心处理${actionLabel}工单`
+        : hasPermission ? `暂无待${actionLabel}工单` : `当前角色无${actionLabel}权限`;
     }
 
     function getScreenshotHtml(value) {
