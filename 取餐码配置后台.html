@@ -1155,7 +1155,7 @@
               <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；用于管理和修正餐品类型、饮料颜色。</p>
             </div>
             <div class="panel-actions">
-              <input id="drinkSearch" class="search-input" type="search" placeholder="搜索商家 / 餐名 / 状态">
+              <input id="drinkSearch" class="search-input" type="search" placeholder="搜索商家 / 餐品名称 / 状态">
             </div>
           </div>
           <form class="form-grid" id="drinkForm">
@@ -1168,13 +1168,13 @@
               <input id="screenshotInput" class="hidden" type="file" accept="image/*">
             </div>
             <div class="field">
+              <label for="foodNameInput">餐品名称</label>
+              <input id="foodNameInput" placeholder="例：冰青提柠檬茶" required>
+            </div>
+            <div class="field">
               <label for="merchantInput">商家</label>
               <input id="merchantInput" list="merchantList" placeholder="输入或选择品牌名称" required>
               <datalist id="merchantList"></datalist>
-            </div>
-            <div class="field">
-              <label for="foodNameInput">餐名</label>
-              <input id="foodNameInput" placeholder="例：冰青提柠檬茶" required>
             </div>
             <div class="field">
               <label for="foodTypeSelect">餐饮类型</label>
@@ -1203,7 +1203,7 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width: 152px;">餐品</th>
+                  <th style="width: 152px;">餐品名称</th>
                   <th style="width: 158px;">
                     <span class="status-th">商家
                       <span class="status-filter-wrap">
@@ -1212,9 +1212,23 @@
                       </span>
                     </span>
                   </th>
-                  <th style="width: 92px;">餐饮类型</th>
+                  <th style="width: 116px;">
+                    <span class="status-th">餐饮类型
+                      <span class="status-filter-wrap">
+                        <button class="filter-icon-btn" id="drinkTypeFilter" title="餐饮类型筛选"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg></button>
+                        <span class="status-filter-menu hidden" id="drinkTypeMenu"></span>
+                      </span>
+                    </span>
+                  </th>
                   <th style="width: 70px;">温度</th>
-                  <th style="width: 112px;">饮料颜色</th>
+                  <th style="width: 136px;">
+                    <span class="status-th">饮料颜色
+                      <span class="status-filter-wrap">
+                        <button class="filter-icon-btn" id="drinkColorFilter" title="饮料颜色筛选"><svg viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg></button>
+                        <span class="status-filter-menu hidden" id="drinkColorMenu"></span>
+                      </span>
+                    </span>
+                  </th>
                   <th style="width: 130px;">
                     <span class="status-th">状态
                       <span class="status-filter-wrap">
@@ -1317,6 +1331,8 @@
     let brandStatusFilterValue = "all";
     let drinkStatusFilterValue = "all";
     let drinkMerchantFilterValue = "all";
+    let drinkTypeFilterValue = "all";
+    let drinkColorFilterValue = "all";
     let currentEmployee = localStorage.getItem(ACCOUNT_KEY) || "11188601";
 
     const el = (id) => document.getElementById(id);
@@ -1527,6 +1543,8 @@
           brandStatusFilterValue = "all";
           drinkStatusFilterValue = "all";
           drinkMerchantFilterValue = "all";
+          drinkTypeFilterValue = "all";
+          drinkColorFilterValue = "all";
           render();
           toast("已导入配置");
         } catch (error) {
@@ -1770,6 +1788,46 @@
       el("drinkMerchantFilter").title = `商家筛选：${currentLabel}`;
     }
 
+    function updateDrinkTypeFilterUi() {
+      const counts = state.drinks.reduce((acc, item) => {
+        acc.all += 1;
+        acc[item.foodType] = (acc[item.foodType] || 0) + 1;
+        return acc;
+      }, { all: 0 });
+      if (drinkTypeFilterValue !== "all" && !counts[drinkTypeFilterValue]) {
+        drinkTypeFilterValue = "all";
+      }
+      const options = ["all", "tea", "coffee", "dessert", "fastfood", "combo_default"];
+      el("drinkTypeMenu").innerHTML = options.map((type) => {
+        const label = type === "all" ? "全部" : typeLabels[type];
+        return `<button data-type-filter="${type}" class="${type === drinkTypeFilterValue ? "active" : ""}">${escapeHtml(label)} (${counts[type] || 0})</button>`;
+      }).join("");
+      const currentLabel = drinkTypeFilterValue === "all" ? "全部" : typeLabels[drinkTypeFilterValue];
+      el("drinkTypeFilter").classList.toggle("active", drinkTypeFilterValue !== "all");
+      el("drinkTypeFilter").title = `餐饮类型筛选：${currentLabel}`;
+    }
+
+    function updateDrinkColorFilterUi() {
+      const counts = state.drinks.reduce((acc, item) => {
+        const color = getDrinkColorDisplay(item);
+        acc.all += 1;
+        acc[color] = (acc[color] || 0) + 1;
+        return acc;
+      }, { all: 0 });
+      if (drinkColorFilterValue !== "all" && !counts[drinkColorFilterValue]) {
+        drinkColorFilterValue = "all";
+      }
+      const colorValues = drinkColors.map((item) => item.value).filter((value) => value !== "default");
+      const options = ["all", ...colorValues, "default", "-"];
+      el("drinkColorMenu").innerHTML = options.map((color) => {
+        const label = color === "all" ? "全部" : color;
+        return `<button data-color-filter="${escapeHtml(color)}" class="${color === drinkColorFilterValue ? "active" : ""}">${escapeHtml(label)} (${counts[color] || 0})</button>`;
+      }).join("");
+      const currentLabel = drinkColorFilterValue === "all" ? "全部" : drinkColorFilterValue;
+      el("drinkColorFilter").classList.toggle("active", drinkColorFilterValue !== "all");
+      el("drinkColorFilter").title = `饮料颜色筛选：${currentLabel}`;
+    }
+
     function renderBrands() {
       const keyword = el("brandSearch").value.trim().toLowerCase();
       const statusFilter = brandStatusFilterValue;
@@ -1819,12 +1877,17 @@
       const keyword = el("drinkSearch").value.trim().toLowerCase();
       const statusFilter = drinkStatusFilterValue;
       const merchantFilter = drinkMerchantFilterValue;
+      const typeFilter = drinkTypeFilterValue;
+      const colorFilter = drinkColorFilterValue;
       const rows = state.drinks.filter((item) => {
-        const source = `${item.merchant} ${item.foodName} ${typeLabels[item.foodType]} ${tempLabels[item.temperature]} ${item.drinkColor} ${stateLabels[item.status]}`.toLowerCase();
+        const colorDisplay = getDrinkColorDisplay(item);
+        const source = `${item.merchant} ${item.foodName} ${typeLabels[item.foodType]} ${tempLabels[item.temperature]} ${colorDisplay} ${stateLabels[item.status]}`.toLowerCase();
         const keywordMatched = !keyword || source.includes(keyword);
         const statusMatched = statusFilter === "all" || item.status === statusFilter;
         const merchantMatched = merchantFilter === "all" || item.merchant === merchantFilter;
-        return keywordMatched && statusMatched && merchantMatched;
+        const typeMatched = typeFilter === "all" || item.foodType === typeFilter;
+        const colorMatched = colorFilter === "all" || colorDisplay === colorFilter;
+        return keywordMatched && statusMatched && merchantMatched && typeMatched && colorMatched;
       }).map((item) => {
         const color = getColorInfo(item.drinkColor);
         const iconColor = isDrinkColorEditable(item.foodType, item.temperature) ? color.hex : "#c9d3df";
@@ -1852,6 +1915,8 @@
       }).join("");
       el("drinkRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">暂无餐品信息</div></td></tr>`;
       updateDrinkMerchantFilterUi();
+      updateDrinkTypeFilterUi();
+      updateDrinkColorFilterUi();
       updateDrinkStatusFilterUi();
     }
 
@@ -2044,11 +2109,35 @@
       el("drinkMerchantMenu").classList.add("hidden");
       renderDrinks();
     });
+    el("drinkTypeFilter").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("drinkTypeMenu").classList.toggle("hidden");
+    });
+    el("drinkTypeMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-type-filter]");
+      if (!button) return;
+      drinkTypeFilterValue = button.dataset.typeFilter;
+      el("drinkTypeMenu").classList.add("hidden");
+      renderDrinks();
+    });
+    el("drinkColorFilter").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("drinkColorMenu").classList.toggle("hidden");
+    });
+    el("drinkColorMenu").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-color-filter]");
+      if (!button) return;
+      drinkColorFilterValue = button.dataset.colorFilter;
+      el("drinkColorMenu").classList.add("hidden");
+      renderDrinks();
+    });
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".status-filter-wrap")) {
         el("brandStatusMenu").classList.add("hidden");
         el("drinkStatusMenu").classList.add("hidden");
         el("drinkMerchantMenu").classList.add("hidden");
+        el("drinkTypeMenu").classList.add("hidden");
+        el("drinkColorMenu").classList.add("hidden");
       }
     });
     el("drinkSearch").addEventListener("input", renderDrinks);
