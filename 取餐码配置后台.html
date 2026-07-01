@@ -278,6 +278,12 @@
       background: #7c5cff;
       font-weight: 800;
       font-size: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .role-badge:hover {
+      box-shadow: 0 0 0 3px rgba(124, 92, 255, .25);
     }
 
     .role-badge.dev {
@@ -1090,7 +1096,7 @@
             <button class="toolbar-login-btn" id="employeeLoginBtn" type="button">登录</button>
           </div>
           <div class="account-pill hidden" id="accountPill" title="当前账号">
-            <span class="role-badge super_admin" id="roleBadge">管</span>
+            <span class="role-badge super_admin" id="roleBadge" role="button" tabindex="0" title="点击切换调试角色">管</span>
             <strong class="employee-no" id="employeeNo">11188601</strong>
           </div>
           <button class="logout-btn hidden" id="logoutBtn" type="button">退出</button>
@@ -1294,6 +1300,7 @@
   <script>
     const STORAGE_KEY = "pickup-code-config-console-v3";
     const ACCOUNT_KEY = "pickup-code-config-console-account";
+    const ROLE_KEY = "pickup-code-config-console-role";
     const brandValues = "luckin_coffee,starbucks,kfc,mcdonalds,mxbc,heytea,cotti_coffee,lucky_cup,pacific_coffee,peets_coffee,chagee,manner_coffee,m_stand,chapanda,nayuki,auntea_jenny,good_me,uncle_q,yihetang,nowwa,1diandian,tasiting,cnhls,ah_ma_handmade,coco,shuyisxc,quchashan,no_yeye_no_tea,tea_monster,juancha,molantea,joes_tea,gong_cha,moning,hero_tea,tims,charliestea,beautea_care,cha_yue_shan,bao_zhu_gong,bao_zhe,molly_tea,yotea,swilloo,kosk,ayogurtcow,ningjitea,chafalls,ye_cui_shan,chaocmg,sen_lin_zi,jpg,arabica,grid_coffee,kuddo,blue_bottle_coffee,costa_coffee,something_for,kcoffee,paix,shan_chi,blend,yu_lian_cha_lou,hun_juice,ru_xu,pizza_hut,more_yogurt,yogurt_cans,blueglass,bluebear,cyystea,dairy_queen,tian_la_la,cha_hua_nong,a_shui_tea,befinecha,linlee,algebraist,beanstar_coffee,seesaw_coffee,lavazza,dicos,burger_king,shake_shack,meet_fresh,honeymoon_dessert,asis,yu_tian_tian,li_ruo_tao,subway,lemon_right,qian_yu_ben_pu,dakotea,chun_feng,danmacha,tamkoko,chen_mandi,yoshinoya".split(",");
     const brandNames = "瑞幸咖啡,星巴克,肯德基,麦当劳,蜜雪冰城,喜茶,库迪咖啡,幸运咖,太平洋咖啡,Peets皮爷咖啡,霸王茶姬,MannerCoffee,M Stand咖啡,茶百道,奈雪的茶,沪上阿姨,古茗,丘大叔柠檬茶,益禾堂,NOWWA挪瓦咖啡,1点点,塔斯汀,华莱士,阿嬷手作,Coco都可,书亦烧仙草,去茶山,爷爷不泡茶,茶力的小怪兽,眷茶臻选,东方墨蘭,茶救星球,贡茶,摩柠手作,英歌魂,Tims天好咖啡,茶理宜世,姜大力,茶月山,煲珠公,爆蔗,茉莉奶白,有茶,斯味洛,KOSK可斯克,一只酸奶牛,柠季,茶瀑布,野萃山,茶亦青,森林子,JPG,ARABICA,Grid Coffee,Kuddo,蓝瓶咖啡,COSTA,SomethingFor咖啡,肯悦咖啡,PAIX,山池咖啡SAANCI,blend,裕莲茶楼,混果汁,入续,必胜客,茉酸奶,酸奶罐罐,Blueglass,兰熊鲜奶,茶颜悦色,Dairy Queen,甜啦啦,茶话弄,阿水大杯茶,百分茶,林里,代数学家,比星咖啡,Seesaw,LAVAZZA,德克士,汉堡王,ShakeShack,鲜芋仙,满记甜品,宝藏绿洲,芋田田,李若桃,赛百味,柠檬向右,千芋本铺,麒麟大口茶,椿风手作,淡马茶坊,Tamkoko,陈文鼎,吉野家".split(",");
     const drinkColors = [
@@ -1339,6 +1346,7 @@
     let drinkColorFilterValue = "all";
     let selectedDrinkId = "";
     let currentEmployee = localStorage.getItem(ACCOUNT_KEY) || "11188601";
+    let currentRole = localStorage.getItem(ROLE_KEY) || "";
 
     const el = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
@@ -1584,7 +1592,7 @@
     }
 
     function renderAccount() {
-      const role = inferRole(currentEmployee);
+      const role = currentRole || inferRole(currentEmployee);
       el("roleSelect").value = role;
       el("loginBox").classList.toggle("hidden", Boolean(currentEmployee));
       el("accountPill").classList.toggle("hidden", !currentEmployee);
@@ -1594,7 +1602,20 @@
       el("employeeNo").textContent = currentEmployee;
       el("roleBadge").textContent = meta.icon;
       el("roleBadge").className = `role-badge ${role}`;
+      el("roleBadge").title = `当前角色：${meta.name}，点击切换调试角色`;
       el("accountPill").title = `${meta.name}：${currentEmployee}`;
+    }
+
+    function switchDebugRole() {
+      if (!currentEmployee) return;
+      const roles = ["dev", "product", "qa", "super_admin"];
+      const current = getRole();
+      const next = roles[(roles.indexOf(current) + 1) % roles.length];
+      currentRole = next;
+      localStorage.setItem(ROLE_KEY, next);
+      renderAccount();
+      render();
+      toast(`已切换为${getRoleMeta(next).name}`);
     }
 
     function loginEmployee() {
@@ -1604,7 +1625,9 @@
         return;
       }
       currentEmployee = employeeNo;
+      currentRole = inferRole(employeeNo);
       localStorage.setItem(ACCOUNT_KEY, employeeNo);
+      localStorage.setItem(ROLE_KEY, currentRole);
       el("employeeInput").value = "";
       renderAccount();
       render();
@@ -1613,7 +1636,9 @@
 
     function logoutEmployee() {
       currentEmployee = "";
+      currentRole = "";
       localStorage.removeItem(ACCOUNT_KEY);
+      localStorage.removeItem(ROLE_KEY);
       el("roleSelect").value = "dev";
       renderAccount();
       render();
@@ -2132,6 +2157,13 @@
     el("configImportInput").addEventListener("change", (event) => importConfigFile(event.target.files[0]));
     el("employeeLoginBtn").addEventListener("click", loginEmployee);
     el("logoutBtn").addEventListener("click", logoutEmployee);
+    el("roleBadge").addEventListener("click", switchDebugRole);
+    el("roleBadge").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        switchDebugRole();
+      }
+    });
     el("employeeInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter") loginEmployee();
     });
