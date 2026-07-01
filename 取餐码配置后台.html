@@ -959,6 +959,16 @@
       width: 100%;
     }
 
+    .field select,
+    .inline-edit:is(select) {
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #697789 50%), linear-gradient(135deg, #697789 50%, transparent 50%);
+      background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 30px;
+    }
+
     .combo-field {
       position: relative;
     }
@@ -2145,8 +2155,7 @@
           <td>${escapeHtml(tempLabels[item.temperature])}</td>
           <td>${escapeHtml(getDrinkColorDisplay(item))}</td>`;
         const actions = editing
-          ? `<button class="icon-btn word save" title="保存修改" data-action="saveDrinkEdit" data-id="${item.id}">保存</button>
-              <button class="icon-btn word" title="取消修改" data-action="cancelDrinkEdit" data-id="${item.id}">取消</button>`
+          ? `<button class="icon-btn word save" title="保存修改" data-action="saveDrinkEdit" data-id="${item.id}">保存</button>`
           : `<button class="icon-btn word" title="修改餐品信息" data-action="editDrink" data-id="${item.id}">修改</button>`;
         return `<tr data-drink-row="${item.id}" class="${editing ? "selected" : ""}">
           ${cells}
@@ -2304,15 +2313,26 @@
       }
       const foodType = getInlineDrinkValue(row, "foodType");
       const temperature = getInlineDrinkValue(row, "temperature");
+      const drinkColor = isDrinkColorEditable(foodType, temperature) ? getInlineDrinkValue(row, "drinkColor") : "default";
+      const currentDrinkColor = isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor || "default" : "default";
+      const unchanged = item.foodName === foodName
+        && item.merchant === merchant
+        && item.foodType === foodType
+        && item.temperature === temperature
+        && currentDrinkColor === drinkColor;
+      if (unchanged) {
+        toast("餐品信息无更新");
+        return;
+      }
       item.foodName = foodName;
       item.merchant = merchant;
       item.foodType = foodType;
       item.temperature = temperature;
-      item.drinkColor = isDrinkColorEditable(foodType, temperature) ? getInlineDrinkValue(row, "drinkColor") : "default";
+      item.drinkColor = drinkColor;
       if (item.status === "online") {
-        item.status = getRole() === "product" ? "qa" : "product";
+        item.status = "product";
         item.devTime = nowText();
-        item.productTime = getRole() === "product" ? item.devTime : "";
+        item.productTime = "";
         item.qaTime = "";
         item.onlineTime = "";
       }
@@ -2507,11 +2527,6 @@
         renderDrinks();
         return;
       }
-      if (action === "cancelDrinkEdit") {
-        editingDrinkId = "";
-        renderDrinks();
-        return;
-      }
       if (action === "saveDrinkEdit") {
         saveInlineDrink(target.dataset.id);
         return;
@@ -2566,6 +2581,9 @@
       if (action === "deleteDrink" && drinkItem) {
         if (getRole() !== "super_admin") {
           toast("仅超级管理员可删除");
+          return;
+        }
+        if (!window.confirm(`确认删除「${drinkItem.foodName}」这条餐品信息吗？`)) {
           return;
         }
         state.drinks = state.drinks.filter((item) => item.id !== drinkItem.id);
