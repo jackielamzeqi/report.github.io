@@ -933,6 +933,83 @@
       width: 100%;
     }
 
+    .combo-field {
+      position: relative;
+    }
+
+    .combo-field input {
+      padding-right: 38px;
+    }
+
+    .combo-toggle {
+      position: absolute;
+      right: 7px;
+      top: 50%;
+      width: 26px;
+      height: 26px;
+      transform: translateY(-50%);
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .combo-toggle:hover {
+      color: var(--text);
+      background: #eef4fb;
+    }
+
+    .combo-toggle svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .combo-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 30;
+      max-height: 260px;
+      overflow: auto;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .combo-menu button,
+    .combo-empty {
+      width: 100%;
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      color: var(--text);
+      background: transparent;
+      text-align: left;
+      font-weight: 650;
+    }
+
+    .combo-menu button:hover,
+    .combo-menu button.active {
+      background: #eef4ff;
+      color: var(--blue);
+    }
+
+    .combo-empty {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
     .status-th {
       display: inline-flex;
       align-items: center;
@@ -1237,8 +1314,13 @@
             </div>
             <div class="field">
               <label for="merchantInput">商家</label>
-              <input id="merchantInput" list="merchantList" placeholder="输入或选择品牌名称" required>
-              <datalist id="merchantList"></datalist>
+              <div class="combo-field" id="merchantCombo">
+                <input id="merchantInput" placeholder="输入或选择品牌名称" autocomplete="off" required>
+                <button class="combo-toggle" id="merchantToggle" type="button" title="选择品牌商家">
+                  <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <div class="combo-menu hidden" id="merchantMenu"></div>
+              </div>
             </div>
             <div class="field">
               <label for="foodTypeSelect">餐饮类型</label>
@@ -1358,6 +1440,7 @@
     const ROLE_KEY = "pickup-code-config-console-role";
     const brandValues = "luckin_coffee,starbucks,kfc,mcdonalds,mxbc,heytea,cotti_coffee,lucky_cup,pacific_coffee,peets_coffee,chagee,manner_coffee,m_stand,chapanda,nayuki,auntea_jenny,good_me,uncle_q,yihetang,nowwa,1diandian,tasiting,cnhls,ah_ma_handmade,coco,shuyisxc,quchashan,no_yeye_no_tea,tea_monster,juancha,molantea,joes_tea,gong_cha,moning,hero_tea,tims,charliestea,beautea_care,cha_yue_shan,bao_zhu_gong,bao_zhe,molly_tea,yotea,swilloo,kosk,ayogurtcow,ningjitea,chafalls,ye_cui_shan,chaocmg,sen_lin_zi,jpg,arabica,grid_coffee,kuddo,blue_bottle_coffee,costa_coffee,something_for,kcoffee,paix,shan_chi,blend,yu_lian_cha_lou,hun_juice,ru_xu,pizza_hut,more_yogurt,yogurt_cans,blueglass,bluebear,cyystea,dairy_queen,tian_la_la,cha_hua_nong,a_shui_tea,befinecha,linlee,algebraist,beanstar_coffee,seesaw_coffee,lavazza,dicos,burger_king,shake_shack,meet_fresh,honeymoon_dessert,asis,yu_tian_tian,li_ruo_tao,subway,lemon_right,qian_yu_ben_pu,dakotea,chun_feng,danmacha,tamkoko,chen_mandi,yoshinoya".split(",");
     const brandNames = "瑞幸咖啡,星巴克,肯德基,麦当劳,蜜雪冰城,喜茶,库迪咖啡,幸运咖,太平洋咖啡,Peets皮爷咖啡,霸王茶姬,MannerCoffee,M Stand咖啡,茶百道,奈雪的茶,沪上阿姨,古茗,丘大叔柠檬茶,益禾堂,NOWWA挪瓦咖啡,1点点,塔斯汀,华莱士,阿嬷手作,Coco都可,书亦烧仙草,去茶山,爷爷不泡茶,茶力的小怪兽,眷茶臻选,东方墨蘭,茶救星球,贡茶,摩柠手作,英歌魂,Tims天好咖啡,茶理宜世,姜大力,茶月山,煲珠公,爆蔗,茉莉奶白,有茶,斯味洛,KOSK可斯克,一只酸奶牛,柠季,茶瀑布,野萃山,茶亦青,森林子,JPG,ARABICA,Grid Coffee,Kuddo,蓝瓶咖啡,COSTA,SomethingFor咖啡,肯悦咖啡,PAIX,山池咖啡SAANCI,blend,裕莲茶楼,混果汁,入续,必胜客,茉酸奶,酸奶罐罐,Blueglass,兰熊鲜奶,茶颜悦色,Dairy Queen,甜啦啦,茶话弄,阿水大杯茶,百分茶,林里,代数学家,比星咖啡,Seesaw,LAVAZZA,德克士,汉堡王,ShakeShack,鲜芋仙,满记甜品,宝藏绿洲,芋田田,李若桃,赛百味,柠檬向右,千芋本铺,麒麟大口茶,椿风手作,淡马茶坊,Tamkoko,陈文鼎,吉野家".split(",");
+    const merchantOptions = [...brandNames, "其他"];
     const drinkColors = [
       { value: "black", label: "black 黑色", hex: "#1f2933" },
       { value: "orange", label: "orange 橙色", hex: "#f47b20" },
@@ -1786,8 +1869,29 @@
     }
 
     function initOptions() {
-      el("merchantList").innerHTML = [...brandNames, "其他"].map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
       el("colorSelect").innerHTML = drinkColors.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+    }
+
+    function renderMerchantMenu() {
+      const keyword = el("merchantInput").value.trim().toLowerCase();
+      const matched = merchantOptions.filter((name) => name.toLowerCase().includes(keyword));
+      el("merchantMenu").innerHTML = matched.length
+        ? matched.map((name) => `<button type="button" class="${name === el("merchantInput").value.trim() ? "active" : ""}" data-merchant-option="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join("")
+        : `<div class="combo-empty">无匹配品牌，可手动输入</div>`;
+    }
+
+    function openMerchantMenu() {
+      renderMerchantMenu();
+      el("merchantMenu").classList.remove("hidden");
+    }
+
+    function closeMerchantMenu() {
+      el("merchantMenu").classList.add("hidden");
+    }
+
+    function selectMerchant(name) {
+      el("merchantInput").value = name;
+      closeMerchantMenu();
     }
 
     function updateMetrics() {
@@ -2143,6 +2247,7 @@
     function fillDrinkForm(item) {
       el("foodNameInput").value = item.foodName || "";
       el("merchantInput").value = item.merchant || "";
+      renderMerchantMenu();
       el("foodTypeSelect").value = item.foodType || "combo_default";
       el("temperatureSelect").value = item.temperature || "hot";
       updateColorControl();
@@ -2234,6 +2339,21 @@
       if (!button) return;
       switchDebugRole(button.dataset.debugRole);
     });
+    el("merchantInput").addEventListener("focus", openMerchantMenu);
+    el("merchantInput").addEventListener("input", openMerchantMenu);
+    el("merchantInput").addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMerchantMenu();
+    });
+    el("merchantToggle").addEventListener("click", (event) => {
+      event.stopPropagation();
+      el("merchantMenu").classList.contains("hidden") ? openMerchantMenu() : closeMerchantMenu();
+    });
+    el("merchantMenu").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const button = event.target.closest("[data-merchant-option]");
+      if (!button) return;
+      selectMerchant(button.dataset.merchantOption);
+    });
     el("employeeInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter") loginEmployee();
     });
@@ -2303,6 +2423,9 @@
       }
       if (!event.target.closest("#accountPill")) {
         el("roleMenu").classList.add("hidden");
+      }
+      if (!event.target.closest("#merchantCombo")) {
+        closeMerchantMenu();
       }
     });
     el("foodTypeSelect").addEventListener("change", updateColorControl);
@@ -2436,6 +2559,7 @@
       state.drinks.unshift(item);
       selectedDrinkId = "";
       event.target.reset();
+      closeMerchantMenu();
       resetScreenshot();
       el("foodTypeSelect").value = "combo_default";
       el("temperatureSelect").value = "hot";
