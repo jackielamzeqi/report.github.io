@@ -309,6 +309,29 @@
       line-height: 1;
     }
 
+    .metric-value {
+      display: block;
+      margin-top: 6px;
+      padding: 0;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .metric-value:not(:disabled) {
+      color: var(--blue);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .metric-value:disabled {
+      cursor: default;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -938,11 +961,11 @@
         <button class="active" data-tab="brands" title="品牌名称">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v6H4z"></path><path d="M4 14h7v6H4z"></path><path d="M13 14h7v6h-7z"></path></svg></span><span>品牌名称</span><span class="nav-count" id="brandCount">98</span>
         </button>
-        <button data-tab="drinks" title="饮料颜色">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"></path><path d="M9 15a3 3 0 0 0 3 3"></path></svg></span><span>饮料颜色</span><span class="nav-count" id="drinkCount">0</span>
+        <button data-tab="drinks" title="餐品信息">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"></path><path d="M9 15a3 3 0 0 0 3 3"></path></svg></span><span>餐品信息</span><span class="nav-count" id="drinkCount">0</span>
         </button>
-        <button data-tab="release" title="配置流程">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12"></path><path d="M6 20h12"></path><path d="M8 4v5l4 3 4-3V4"></path><path d="M8 20v-5l4-3 4 3v5"></path></svg></span><span>配置流程</span><span class="nav-count" id="releaseCount">0</span>
+        <button data-tab="release" title="工单中心">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12"></path><path d="M6 20h12"></path><path d="M8 4v5l4 3 4-3V4"></path><path d="M8 20v-5l4-3 4 3v5"></path></svg></span><span>工单中心</span><span class="nav-count" id="releaseCount">0</span>
         </button>
       </nav>
       <div class="release-panel">
@@ -975,10 +998,10 @@
         <div class="metric-strip">
           <div class="metric"><span>品牌总数</span><strong id="metricBrands">98</strong></div>
           <div class="metric"><span>相似名称</span><strong id="metricAliases">0</strong></div>
-          <div class="metric"><span>饮料颜色</span><strong id="metricDrinks">0</strong></div>
-          <div class="metric"><span>待同意</span><strong id="metricProduct">0</strong></div>
-          <div class="metric"><span>待验收</span><strong id="metricQa">0</strong></div>
-          <div class="metric"><span>待上线</span><strong id="metricReady">0</strong></div>
+          <div class="metric"><span>餐品信息</span><strong id="metricDrinks">0</strong></div>
+          <div class="metric"><span>待同意</span><button class="metric-value" id="metricProduct" data-work-order-status="product" type="button">0</button></div>
+          <div class="metric"><span>待验收</span><button class="metric-value" id="metricQa" data-work-order-status="qa" type="button">0</button></div>
+          <div class="metric"><span>待上线</span><button class="metric-value" id="metricReady" data-work-order-status="release" type="button">0</button></div>
         </div>
 
         <section class="panel" id="brandsPanel">
@@ -1025,8 +1048,8 @@
         <section class="panel hidden" id="drinksPanel">
           <div class="panel-head">
             <div>
-              <h3>饮料颜色</h3>
-              <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；仅餐饮类型为茶饮且温度为冷时可选择饮料颜色。</p>
+              <h3>餐品信息</h3>
+              <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；用于管理和修正餐品类型、饮料颜色。</p>
             </div>
             <div class="panel-actions">
               <input id="drinkSearch" class="search-input" type="search" placeholder="搜索商家 / 餐名 / 状态">
@@ -1114,7 +1137,7 @@
         <section class="panel hidden" id="releasePanel">
           <div class="panel-head">
             <div>
-              <h3>配置流程</h3>
+              <h3>工单中心</h3>
               <p>展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。</p>
             </div>
             <div class="panel-actions">
@@ -1266,6 +1289,10 @@
       return foodType === "tea" && temperature === "cold";
     }
 
+    function getDrinkColorDisplay(item) {
+      return isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor : "-";
+    }
+
     function getFoodIconClass(type) {
       if (type === "fastfood") return "fastfood";
       if (type === "combo_default") return "combo";
@@ -1292,6 +1319,14 @@
       if (target === "product") return role === "product" && item.status === "product";
       if (target === "qa") return role === "qa" && item.status === "qa";
       if (target === "online") return role === "super_admin" && item.status === "release";
+      return false;
+    }
+
+    function canOpenWorkOrders(status) {
+      const role = getRole();
+      if (status === "product") return role === "product";
+      if (status === "qa") return role === "qa";
+      if (status === "release") return role === "super_admin";
       return false;
     }
 
@@ -1334,7 +1369,18 @@
       el("metricProduct").textContent = productPending;
       el("metricQa").textContent = qaPending;
       el("metricReady").textContent = ready;
+      updateMetricAction("metricProduct", "product", productPending);
+      updateMetricAction("metricQa", "qa", qaPending);
+      updateMetricAction("metricReady", "release", ready);
       el("publishReadyBtn").disabled = !canBatchPublish();
+    }
+
+    function updateMetricAction(id, status, count) {
+      const node = el(id);
+      const enabled = count > 0 && canOpenWorkOrders(status);
+      const actionLabel = status === "product" ? "同意" : status === "qa" ? "验收" : "上线";
+      node.disabled = !enabled;
+      node.title = enabled ? `进入工单中心处理${actionLabel}` : `当前角色暂无${actionLabel}权限或无待处理项`;
     }
 
     function getScreenshotHtml(value) {
@@ -1465,7 +1511,7 @@
           <td>${escapeHtml(item.merchant)}</td>
           <td>${escapeHtml(typeLabels[item.foodType])}</td>
           <td>${escapeHtml(tempLabels[item.temperature])}</td>
-          <td>${isDrinkColorEditable(item.foodType, item.temperature) ? escapeHtml(item.drinkColor) : "置灰"}</td>
+          <td>${escapeHtml(getDrinkColorDisplay(item))}</td>
           <td>${getStatusHtml(item.status)}</td>
           <td>
             <div class="action-row">
@@ -1477,7 +1523,7 @@
           </td>
         </tr>`;
       }).join("");
-      el("drinkRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">暂无饮料颜色</div></td></tr>`;
+      el("drinkRows").innerHTML = rows || `<tr><td colspan="7"><div class="empty">暂无餐品信息</div></td></tr>`;
       updateDrinkMerchantFilterUi();
       updateDrinkStatusFilterUi();
     }
@@ -1485,12 +1531,12 @@
     function renderRelease() {
       const items = [
         ...state.brands.filter((item) => item.aliases.length || item.status !== "draft").map((item) => ({ kind: "品牌名称", ref: item.brand, item })),
-        ...state.drinks.map((item) => ({ kind: "饮料颜色", ref: item.id, item }))
+        ...state.drinks.map((item) => ({ kind: "餐品信息", ref: item.id, item }))
       ];
       const rows = items.map(({ kind, item }) => {
         const content = kind === "品牌名称"
           ? `${item.name} / ${item.brand} / 相似名称：${item.aliases.join("、") || "-"}`
-          : `${item.merchant} / ${item.foodName} / ${typeLabels[item.foodType]} / ${tempLabels[item.temperature]} / ${isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor : "置灰"}`;
+          : `${item.merchant} / ${item.foodName} / ${typeLabels[item.foodType]} / ${tempLabels[item.temperature]} / ${getDrinkColorDisplay(item)}`;
         const action = kind === "品牌名称"
           ? `<div class="action-row">
               <button class="icon-btn word ok" title="产品同意" data-action="productApproveBrand" data-brand="${item.brand}" ${canAct(item, "product") ? "" : "disabled"}>同意</button>
@@ -1529,8 +1575,8 @@
       el("releasePanel").classList.toggle("hidden", tab !== "release");
       const copy = {
         brands: ["品牌名称", "开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。"],
-        drinks: ["饮料颜色", "开发或产品可发起餐品颜色修正，产品同意，品质验收后上线。"],
-        release: ["配置流程", "展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。"]
+        drinks: ["餐品信息", "开发或产品可发起餐品类型、饮料颜色修正，产品同意，品质验收后上线。"],
+        release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。"]
       };
       el("pageTitle").textContent = copy[tab][0];
       el("pageDesc").textContent = copy[tab][1];
@@ -1618,6 +1664,15 @@
     document.querySelector(".nav").addEventListener("click", (event) => {
       const button = event.target.closest("button[data-tab]");
       if (button) switchTab(button.dataset.tab);
+    });
+
+    document.querySelector(".metric-strip").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-work-order-status]");
+      if (!button || button.disabled) return;
+      switchTab("release");
+      const status = button.dataset.workOrderStatus;
+      const actionLabel = status === "product" ? "同意" : status === "qa" ? "验收" : "上线";
+      toast(`已进入工单中心，可处理${actionLabel}工单`);
     });
 
     el("roleSelect").addEventListener("change", render);
@@ -1721,7 +1776,7 @@
       }
       if (action === "qaAcceptBrand" && brandItem) {
         advance(brandItem, "qa");
-        toast("品质已验收，进入配置流程");
+        toast("品质已验收，进入工单中心");
         render();
       }
       if (action === "publishBrand" && brandItem) {
@@ -1736,12 +1791,12 @@
       }
       if (action === "qaAcceptDrink" && drinkItem) {
         advance(drinkItem, "qa");
-        toast("品质已验收，进入配置流程");
+        toast("品质已验收，进入工单中心");
         render();
       }
       if (action === "publishDrink" && drinkItem) {
         advance(drinkItem, "publish");
-        toast("饮料颜色已上线");
+        toast("餐品信息已上线");
         render();
       }
       if (action === "deleteDrink" && drinkItem) {
@@ -1750,7 +1805,7 @@
           return;
         }
         state.drinks = state.drinks.filter((item) => item.id !== drinkItem.id);
-        toast("已删除饮料颜色");
+        toast("已删除餐品信息");
         render();
       }
     });
@@ -1785,7 +1840,7 @@
       el("foodTypeSelect").value = "combo_default";
       el("temperatureSelect").value = "hot";
       updateColorControl();
-      toast(getRole() === "product" ? "已新增饮料颜色，并进入品质验收" : "已新增饮料颜色，并进入产品同意");
+      toast(getRole() === "product" ? "已新增餐品信息，并进入品质验收" : "已新增餐品信息，并进入产品同意");
       render();
     });
 
