@@ -560,6 +560,10 @@
       justify-content: flex-end;
     }
 
+    .panel-actions.left-actions {
+      justify-content: flex-start;
+    }
+
     .search-input {
       width: 280px;
       height: 36px;
@@ -576,6 +580,11 @@
       border-collapse: collapse;
       table-layout: fixed;
       font-size: 13px;
+    }
+
+    .release-table {
+      width: 1320px;
+      max-width: none;
     }
 
     thead th {
@@ -1408,11 +1417,7 @@
 
         <section class="panel" id="brandsPanel">
           <div class="panel-head">
-            <div>
-              <h3>品牌信息</h3>
-              <p>brand 固定，按品牌中文名称一一对应；相似名称走三段审批。</p>
-            </div>
-            <div class="panel-actions">
+            <div class="panel-actions left-actions">
               <input id="brandSearch" class="search-input" type="search" placeholder="搜索品牌或相似名称">
             </div>
           </div>
@@ -1448,13 +1453,11 @@
 
         <section class="panel hidden" id="drinksPanel">
           <div class="panel-head">
-            <div>
-              <h3>配置说明</h3>
-              <p>可新增、修改或删除餐品信息，修正餐饮类型和饮料颜色。新增时，选择餐品截屏后，后台自动识别和提取餐品主图。</p>
+            <div class="panel-actions left-actions">
+              <input id="drinkNameSearch" class="search-input" type="search" placeholder="搜索餐品名称">
             </div>
             <div class="panel-actions">
               <button class="btn primary" id="openDrinkModalBtn" type="button">新增</button>
-              <input id="drinkNameSearch" class="search-input" type="search" placeholder="搜索餐品名称">
             </div>
           </div>
           <div class="table-wrap">
@@ -1517,13 +1520,13 @@
             </div>
           </div>
           <div class="table-wrap">
-            <table>
+            <table class="release-table">
               <thead>
                 <tr>
-                  <th style="width: 120px;">类型</th>
-                  <th>配置内容</th>
-                  <th style="width: 126px;">状态</th>
-                  <th style="width: 220px;">修改时间</th>
+                  <th style="width: 110px;">类型</th>
+                  <th style="width: 520px;">配置内容</th>
+                  <th style="width: 120px;">状态</th>
+                  <th style="width: 360px;">处理时间</th>
                   <th style="width: 190px;">操作</th>
                 </tr>
               </thead>
