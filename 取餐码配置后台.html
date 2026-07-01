@@ -255,6 +255,7 @@
     }
 
     .account-pill {
+      position: relative;
       height: 46px;
       min-width: 224px;
       padding: 0 18px 0 10px;
@@ -307,6 +308,54 @@
       line-height: 1;
       letter-spacing: 1px;
     }
+
+    .role-menu {
+      position: absolute;
+      top: 52px;
+      left: 0;
+      z-index: 9;
+      width: 150px;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #465168;
+      background: #1a2434;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, .22);
+    }
+
+    .role-menu button {
+      width: 100%;
+      height: 34px;
+      border-radius: 6px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d8e0ec;
+      background: transparent;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .role-menu button:hover,
+    .role-menu button.active {
+      color: #fff;
+      background: #2a3550;
+    }
+
+    .role-menu-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .role-menu-dot.dev { background: #2563eb; }
+    .role-menu-dot.product { background: #7c3aed; }
+    .role-menu-dot.qa { background: #ca8a04; }
+    .role-menu-dot.super_admin { background: #7c5cff; }
 
     .role-select,
     .search-input,
@@ -864,7 +913,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 210px minmax(220px, 1fr) 260px 140px 120px 150px auto auto;
+      grid-template-columns: 178px minmax(190px, 1fr) minmax(210px, 1fr) 124px 100px 136px 72px 72px;
       gap: 8px;
       align-items: end;
       padding: 12px 14px;
@@ -1096,8 +1145,14 @@
             <button class="toolbar-login-btn" id="employeeLoginBtn" type="button">登录</button>
           </div>
           <div class="account-pill hidden" id="accountPill" title="当前账号">
-            <span class="role-badge super_admin" id="roleBadge" role="button" tabindex="0" title="点击切换调试角色">管</span>
+            <span class="role-badge super_admin" id="roleBadge" role="button" tabindex="0" title="点击选择调试角色">管</span>
             <strong class="employee-no" id="employeeNo">11188601</strong>
+            <div class="role-menu hidden" id="roleMenu">
+              <button type="button" data-debug-role="dev"><span class="role-menu-dot dev">开</span>开发</button>
+              <button type="button" data-debug-role="product"><span class="role-menu-dot product">产</span>产品</button>
+              <button type="button" data-debug-role="qa"><span class="role-menu-dot qa">质</span>品质</button>
+              <button type="button" data-debug-role="super_admin"><span class="role-menu-dot super_admin">管</span>管理员</button>
+            </div>
           </div>
           <button class="logout-btn hidden" id="logoutBtn" type="button">退出</button>
           <select id="roleSelect" class="role-select hidden" title="当前角色">
@@ -1602,20 +1657,26 @@
       el("employeeNo").textContent = currentEmployee;
       el("roleBadge").textContent = meta.icon;
       el("roleBadge").className = `role-badge ${role}`;
-      el("roleBadge").title = `当前角色：${meta.name}，点击切换调试角色`;
+      el("roleBadge").title = `当前角色：${meta.name}，点击选择调试角色`;
       el("accountPill").title = `${meta.name}：${currentEmployee}`;
+      document.querySelectorAll("#roleMenu [data-debug-role]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.debugRole === role);
+      });
     }
 
-    function switchDebugRole() {
+    function toggleRoleMenu() {
       if (!currentEmployee) return;
-      const roles = ["dev", "product", "qa", "super_admin"];
-      const current = getRole();
-      const next = roles[(roles.indexOf(current) + 1) % roles.length];
-      currentRole = next;
-      localStorage.setItem(ROLE_KEY, next);
+      el("roleMenu").classList.toggle("hidden");
+    }
+
+    function switchDebugRole(role) {
+      if (!currentEmployee) return;
+      currentRole = role;
+      localStorage.setItem(ROLE_KEY, role);
+      el("roleMenu").classList.add("hidden");
       renderAccount();
       render();
-      toast(`已切换为${getRoleMeta(next).name}`);
+      toast(`已切换为${getRoleMeta(role).name}`);
     }
 
     function loginEmployee() {
@@ -2157,12 +2218,21 @@
     el("configImportInput").addEventListener("change", (event) => importConfigFile(event.target.files[0]));
     el("employeeLoginBtn").addEventListener("click", loginEmployee);
     el("logoutBtn").addEventListener("click", logoutEmployee);
-    el("roleBadge").addEventListener("click", switchDebugRole);
+    el("roleBadge").addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleRoleMenu();
+    });
     el("roleBadge").addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        switchDebugRole();
+        toggleRoleMenu();
       }
+    });
+    el("roleMenu").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const button = event.target.closest("[data-debug-role]");
+      if (!button) return;
+      switchDebugRole(button.dataset.debugRole);
     });
     el("employeeInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter") loginEmployee();
@@ -2230,6 +2300,9 @@
         el("drinkMerchantMenu").classList.add("hidden");
         el("drinkTypeMenu").classList.add("hidden");
         el("drinkColorMenu").classList.add("hidden");
+      }
+      if (!event.target.closest("#accountPill")) {
+        el("roleMenu").classList.add("hidden");
       }
     });
     el("foodTypeSelect").addEventListener("change", updateColorControl);
