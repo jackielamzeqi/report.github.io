@@ -475,10 +475,51 @@
       color: var(--blue);
       text-decoration: underline;
       text-underline-offset: 3px;
+      cursor: pointer;
     }
 
     .metric-value:disabled {
       cursor: default;
+      color: #9aa8b6;
+      text-decoration: none;
+    }
+
+    .role-permission-panel {
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .role-permission-panel strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .permission-tags {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .permission-tags span {
+      height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      color: #0f5fc9;
+      background: #eaf3ff;
+      border: 1px solid #cfe4ff;
+      font-weight: 700;
     }
 
     .panel {
@@ -1247,7 +1288,7 @@
       <header class="topbar">
         <div class="title">
           <h2 id="pageTitle">品牌信息</h2>
-          <p id="pageDesc">开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。</p>
+          <p id="pageDesc">开发、产品、品质、管理员可新增和修改配置，审批动作统一在工单中心处理。</p>
         </div>
         <div class="toolbar">
           <button class="tool-btn" id="exportBtn" type="button" title="导出当前配置"><span class="tool-icon">⬇</span>导出</button>
@@ -1272,7 +1313,7 @@
             <option value="dev">开发（算法）</option>
             <option value="product">产品</option>
             <option value="qa">品质</option>
-            <option value="super_admin">超级管理员</option>
+            <option value="super_admin">管理员</option>
           </select>
         </div>
       </header>
@@ -1286,11 +1327,17 @@
           <div class="metric"><span>待验收</span><button class="metric-value" id="metricQa" data-work-order-status="qa" type="button">0</button></div>
           <div class="metric"><span>待上线</span><button class="metric-value" id="metricReady" data-work-order-status="release" type="button">0</button></div>
         </div>
+        <div class="role-permission-panel">
+          <span>当前角色</span>
+          <strong id="rolePermissionName">管理员</strong>
+          <span>权限</span>
+          <span class="permission-tags" id="rolePermissionTags"></span>
+        </div>
 
         <section class="panel" id="brandsPanel">
           <div class="panel-head">
             <div>
-              <h3>品牌映射表</h3>
+              <h3>品牌信息</h3>
               <p>brand 固定，按品牌中文名称一一对应；相似名称走三段审批。</p>
             </div>
             <div class="panel-actions">
@@ -1436,7 +1483,7 @@
           <div class="panel-head">
             <div>
               <h3>工单中心</h3>
-              <p>展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。</p>
+              <p>展示所有修改历史记录，支持产品同意、品质验收和管理员上线。</p>
             </div>
           </div>
           <div class="table-wrap">
@@ -1755,9 +1802,25 @@
         dev: { icon: "开", name: "开发" },
         product: { icon: "产", name: "产品" },
         qa: { icon: "质", name: "品质" },
-        super_admin: { icon: "管", name: "超级管理员" }
+        super_admin: { icon: "管", name: "管理员" }
       };
       return meta[role] || meta.dev;
+    }
+
+    function getRolePermissions(role = getRole()) {
+      const permissions = {
+        dev: ["新增", "修改"],
+        product: ["新增", "修改", "同意"],
+        qa: ["新增", "修改", "验收"],
+        super_admin: ["新增", "修改", "删除", "上线"]
+      };
+      return permissions[role] || permissions.dev;
+    }
+
+    function renderRolePermissions() {
+      const role = getRole();
+      el("rolePermissionName").textContent = getRoleMeta(role).name;
+      el("rolePermissionTags").innerHTML = getRolePermissions(role).map((item) => `<span>${escapeHtml(item)}</span>`).join("");
     }
 
     function renderAccount() {
@@ -1865,7 +1928,7 @@
 
     function canAct(item, target) {
       const role = getRole();
-      if (target === "start") return ["dev", "product"].includes(role) && item.status === "draft";
+      if (target === "start") return ["dev", "product", "qa", "super_admin"].includes(role) && item.status === "draft";
       if (target === "product") return role === "product" && item.status === "product";
       if (target === "qa") return role === "qa" && item.status === "qa";
       if (target === "online") return role === "super_admin" && item.status === "release";
@@ -1941,13 +2004,15 @@
       updateMetricAction("metricProduct", "product", productPending);
       updateMetricAction("metricQa", "qa", qaPending);
       updateMetricAction("metricReady", "release", ready);
+      renderRolePermissions();
     }
 
     function updateMetricAction(id, status, count) {
       const node = el(id);
       const actionLabel = status === "product" ? "同意" : status === "qa" ? "验收" : "上线";
-      node.disabled = false;
-      node.title = `进入工单中心处理${actionLabel}工单`;
+      const enabled = canOpenWorkOrders(status);
+      node.disabled = !enabled;
+      node.title = enabled ? `进入工单中心处理${actionLabel}工单` : `当前角色无${actionLabel}权限`;
     }
 
     function getScreenshotHtml(value) {
@@ -2221,9 +2286,9 @@
       el("drinksPanel").classList.toggle("hidden", tab !== "drinks");
       el("releasePanel").classList.toggle("hidden", tab !== "release");
       const copy = {
-        brands: ["品牌信息", "开发或产品可发起新增相似名称，产品同意，品质验收后进入上线配置表。"],
+        brands: ["品牌信息", "开发、产品、品质、管理员可新增和修改配置，审批动作统一在工单中心处理。"],
         drinks: ["餐品信息", "开发或产品可发起餐品类型、饮料颜色修正，产品同意，品质验收后上线。"],
-        release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和超级管理员上线。"]
+        release: ["工单中心", "展示所有修改历史记录，支持产品同意、品质验收和管理员上线。"]
       };
       el("pageTitle").textContent = copy[tab][0];
       el("pageDesc").textContent = copy[tab][1];
@@ -2534,7 +2599,7 @@
       if (action === "addAlias") addAlias(target.dataset.brand);
       if (action === "removeAlias" && brandItem) {
         if (getRole() !== "super_admin") {
-          toast("仅超级管理员可删除相似名称");
+          toast("仅管理员可删除相似名称");
           return;
         }
         brandItem.aliases.splice(Number(target.dataset.index), 1);
@@ -2580,7 +2645,7 @@
       }
       if (action === "deleteDrink" && drinkItem) {
         if (getRole() !== "super_admin") {
-          toast("仅超级管理员可删除");
+          toast("仅管理员可删除");
           return;
         }
         if (!window.confirm(`确认删除「${drinkItem.foodName}」这条餐品信息吗？`)) {
@@ -2595,8 +2660,8 @@
 
     el("drinkForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      if (!["dev", "product"].includes(getRole())) {
-        toast("当前仅开发或产品可新增配置");
+      if (!getRolePermissions().includes("新增")) {
+        toast("当前角色无新增权限");
         return;
       }
       const createdAt = nowText();
