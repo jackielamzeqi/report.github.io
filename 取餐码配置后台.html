@@ -506,6 +506,11 @@
       background: #f8fbff;
     }
 
+    tbody tr.selected {
+      background: #eaf3ff;
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+
     .brand-cell,
     .food-cell {
       display: grid;
@@ -541,6 +546,7 @@
     .brand-text strong,
     .food-text strong {
       display: block;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -852,7 +858,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 210px 260px minmax(220px, 1fr) 140px 120px 150px auto;
+      grid-template-columns: 210px minmax(220px, 1fr) 260px 140px 120px 150px auto auto;
       gap: 8px;
       align-items: end;
       padding: 12px 14px;
@@ -1024,10 +1030,10 @@
         display: none;
       }
 
-      .topbar,
-      .panel-head,
-      .form-grid {
-        grid-template-columns: 1fr;
+        .topbar,
+        .panel-head,
+        .form-grid {
+          grid-template-columns: 1fr;
         height: auto;
       }
 
@@ -1154,9 +1160,6 @@
               <h3>餐品信息</h3>
               <p>选择餐品截屏后，后台自动提取餐品主图并填入列表；用于管理和修正餐品类型、饮料颜色。</p>
             </div>
-            <div class="panel-actions">
-              <input id="drinkSearch" class="search-input" type="search" placeholder="搜索商家 / 餐品名称 / 状态">
-            </div>
           </div>
           <form class="form-grid" id="drinkForm">
             <div class="field">
@@ -1198,6 +1201,7 @@
               <select id="colorSelect" disabled></select>
             </div>
             <button class="btn primary" type="submit">新增</button>
+            <button class="btn" id="updateDrinkBtn" type="button" disabled>修改</button>
           </form>
           <div class="table-wrap">
             <table>
@@ -1333,6 +1337,7 @@
     let drinkMerchantFilterValue = "all";
     let drinkTypeFilterValue = "all";
     let drinkColorFilterValue = "all";
+    let selectedDrinkId = "";
     let currentEmployee = localStorage.getItem(ACCOUNT_KEY) || "11188601";
 
     const el = (id) => document.getElementById(id);
@@ -1874,28 +1879,25 @@
     }
 
     function renderDrinks() {
-      const keyword = el("drinkSearch").value.trim().toLowerCase();
       const statusFilter = drinkStatusFilterValue;
       const merchantFilter = drinkMerchantFilterValue;
       const typeFilter = drinkTypeFilterValue;
       const colorFilter = drinkColorFilterValue;
       const rows = state.drinks.filter((item) => {
         const colorDisplay = getDrinkColorDisplay(item);
-        const source = `${item.merchant} ${item.foodName} ${typeLabels[item.foodType]} ${tempLabels[item.temperature]} ${colorDisplay} ${stateLabels[item.status]}`.toLowerCase();
-        const keywordMatched = !keyword || source.includes(keyword);
         const statusMatched = statusFilter === "all" || item.status === statusFilter;
         const merchantMatched = merchantFilter === "all" || item.merchant === merchantFilter;
         const typeMatched = typeFilter === "all" || item.foodType === typeFilter;
         const colorMatched = colorFilter === "all" || colorDisplay === colorFilter;
-        return keywordMatched && statusMatched && merchantMatched && typeMatched && colorMatched;
+        return statusMatched && merchantMatched && typeMatched && colorMatched;
       }).map((item) => {
         const color = getColorInfo(item.drinkColor);
         const iconColor = isDrinkColorEditable(item.foodType, item.temperature) ? color.hex : "#c9d3df";
-        return `<tr>
+        return `<tr data-drink-row="${item.id}" class="${item.id === selectedDrinkId ? "selected" : ""}">
           <td>
             <div class="food-cell">
               ${getFoodVisualHtml(item, iconColor)}
-              <div class="food-text"><strong>${escapeHtml(item.foodName)}</strong><span>餐品图标</span></div>
+              <div class="food-text"><strong title="${escapeHtml(item.foodName)}">${escapeHtml(item.foodName)}</strong><span>餐品图标</span></div>
             </div>
           </td>
           <td>${escapeHtml(item.merchant)}</td>
@@ -1918,6 +1920,7 @@
       updateDrinkTypeFilterUi();
       updateDrinkColorFilterUi();
       updateDrinkStatusFilterUi();
+      updateDrinkSelectionUi();
     }
 
     function renderRelease() {
@@ -2036,6 +2039,63 @@
       if (!enabled) el("colorSelect").value = "default";
     }
 
+    function getSelectedDrink() {
+      return state.drinks.find((item) => item.id === selectedDrinkId);
+    }
+
+    function updateDrinkSelectionUi() {
+      const selected = getSelectedDrink();
+      el("updateDrinkBtn").disabled = !selected;
+    }
+
+    function clearDrinkSelection() {
+      selectedDrinkId = "";
+      updateDrinkSelectionUi();
+      renderDrinks();
+    }
+
+    function fillDrinkForm(item) {
+      el("foodNameInput").value = item.foodName || "";
+      el("merchantInput").value = item.merchant || "";
+      el("foodTypeSelect").value = item.foodType || "combo_default";
+      el("temperatureSelect").value = item.temperature || "hot";
+      updateColorControl();
+      el("colorSelect").value = isDrinkColorEditable(item.foodType, item.temperature) ? item.drinkColor || "default" : "default";
+      selectedScreenshot = item.screenshot || "";
+      el("screenshotPreview").innerHTML = selectedScreenshot ? `<img src="${escapeHtml(selectedScreenshot)}" alt="餐品截屏预览">` : "未选";
+    }
+
+    function updateSelectedDrink() {
+      const item = getSelectedDrink();
+      if (!item) {
+        toast("请先选择一条餐品信息");
+        return;
+      }
+      const foodName = el("foodNameInput").value.trim();
+      const merchant = el("merchantInput").value.trim();
+      if (!foodName || !merchant) {
+        toast("请填写餐品名称和商家");
+        return;
+      }
+      const foodType = el("foodTypeSelect").value;
+      const temperature = el("temperatureSelect").value;
+      item.foodName = foodName;
+      item.merchant = merchant;
+      item.foodType = foodType;
+      item.temperature = temperature;
+      item.drinkColor = isDrinkColorEditable(foodType, temperature) ? el("colorSelect").value : "default";
+      item.screenshot = selectedScreenshot;
+      if (item.status === "online") {
+        item.status = getRole() === "product" ? "qa" : "product";
+        item.devTime = nowText();
+        item.productTime = getRole() === "product" ? item.devTime : "";
+        item.qaTime = "";
+        item.onlineTime = "";
+      }
+      toast("已修改餐品信息");
+      render();
+    }
+
     function openImageModal(src) {
       if (!src) return;
       el("imageModalImg").src = src;
@@ -2140,9 +2200,9 @@
         el("drinkColorMenu").classList.add("hidden");
       }
     });
-    el("drinkSearch").addEventListener("input", renderDrinks);
     el("foodTypeSelect").addEventListener("change", updateColorControl);
     el("temperatureSelect").addEventListener("change", updateColorControl);
+    el("updateDrinkBtn").addEventListener("click", updateSelectedDrink);
     el("screenshotInput").addEventListener("change", (event) => {
       const file = event.target.files[0];
       if (!file) {
@@ -2162,6 +2222,16 @@
       if (!input) return;
       const item = state.brands.find((row) => row.brand === input.dataset.brand);
       if (item) item.aliasDraft = input.value;
+    });
+
+    el("drinkRows").addEventListener("click", (event) => {
+      if (event.target.closest("[data-action]")) return;
+      const row = event.target.closest("[data-drink-row]");
+      if (!row) return;
+      selectedDrinkId = row.dataset.drinkRow;
+      const item = getSelectedDrink();
+      if (item) fillDrinkForm(item);
+      renderDrinks();
     });
 
     document.body.addEventListener("click", (event) => {
@@ -2228,6 +2298,7 @@
           return;
         }
         state.drinks = state.drinks.filter((item) => item.id !== drinkItem.id);
+        if (selectedDrinkId === drinkItem.id) selectedDrinkId = "";
         toast("已删除餐品信息");
         render();
       }
@@ -2258,6 +2329,7 @@
       };
       if (!item.merchant || !item.foodName) return;
       state.drinks.unshift(item);
+      selectedDrinkId = "";
       event.target.reset();
       resetScreenshot();
       el("foodTypeSelect").value = "combo_default";
